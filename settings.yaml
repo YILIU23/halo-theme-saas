@@ -1,0 +1,196 @@
+apiVersion: v1alpha1
+kind: Setting
+metadata:
+  name: saas-theme-setting
+spec:
+  forms:
+    - group: appearance
+      label: 外观
+      formSchema:
+        - $formkit: radio
+          name: default_color_scheme
+          label: 默认配色模式
+          value: system
+          help: 访客仍可通过顶栏按钮手动切换,选择会被记住
+          options:
+            - label: 跟随系统
+              value: system
+            - label: 浅色
+              value: light
+            - label: 深色
+              value: dark
+        - $formkit: checkbox
+          name: enable_toc
+          label: 启用文章目录
+          value: true
+          help: 在文章页侧栏展示标题目录并跟随滚动高亮
+        - $formkit: checkbox
+          name: show_hero
+          label: 首页展示横幅
+          value: true
+          help: 关闭后首页直接展示文章列表
+    - group: colors
+      label: 配色
+      formSchema:
+        - $formkit: color
+          name: primary_color
+          label: 主色
+          value: "#4f6bf6"
+          help: 按钮、链接、高亮等强调元素使用
+        - $formkit: color
+          name: secondary_color
+          label: 渐变辅色
+          value: "#8b5cf6"
+          help: 与主色组成渐变,用于横幅和装饰
+        - $formkit: color
+          name: light_background
+          label: 浅色模式背景
+          value: "#f6f7fb"
+        - $formkit: color
+          name: dark_background
+          label: 深色模式背景
+          value: "#0e1116"
+    - group: layout
+      label: 布局
+      formSchema:
+        - $formkit: checkbox
+          name: enable_global_box
+          label: 启用大盒子布局
+          value: true
+          help: 把导航、正文、侧栏与页脚整体裹进一个带圆角与投影的容器, 悬浮在页面背景之上; 关闭则恢复全屏铺满
+        - $formkit: color
+          name: global_box_bg_light
+          label: 大盒子背景(浅色)
+          value: "#ffffff"
+          help: 仅在大盒子布局开启时生效
+        - $formkit: color
+          name: global_box_bg_dark
+          label: 大盒子背景(深色)
+          value: "#171b21"
+        - $formkit: number
+          name: global_box_bg_opacity
+          label: 大盒子背景不透明度(%)
+          value: 100
+          min: 40
+          max: 100
+          help: 100 为纯色, 调低可得到半透明背景
+        - $formkit: number
+          name: global_box_radius
+          label: 大盒子圆角(px)
+          value: 16
+          min: 0
+          max: 32
+        - $formkit: checkbox
+          name: global_box_shadow
+          label: 大盒子投影
+          value: true
+          help: 关闭后盒子与背景之间只靠配色区分
+    - group: cover
+      label: 封面
+      formSchema:
+        - $formkit: attachment
+          name: default_post_cover
+          label: 全局默认文章封面
+          value: ""
+          width: 10rem
+          aspectRatio: 16/9
+          accepts:
+            - "image/png"
+            - "image/jpeg"
+            - "image/webp"
+            - "image/gif"
+            - "image/avif"
+          help: 文章自身没有封面时使用; 留空则显示内置占位图
+    - group: reading
+      label: 阅读体验
+      formSchema:
+        - $formkit: checkbox
+          name: enable_reading_progress
+          label: 顶部阅读进度条
+          value: true
+          help: 文章与页面滚动时在页头下方显示阅读进度
+        - $formkit: checkbox
+          name: enable_reading_time
+          label: 显示预计阅读时长
+          value: true
+          help: 按正文长度估算阅读时间,展示在文章标题下方
+        - $formkit: checkbox
+          name: enable_code_copy
+          label: 代码块一键复制
+          value: true
+          help: 为正文中的每个代码块添加复制按钮
+        - $formkit: checkbox
+          name: enable_share
+          label: 文章分享
+          value: true
+          help: 文章页底部展示复制链接、微博、X 分享入口
+        - $formkit: checkbox
+          name: enable_back_to_top
+          label: 返回顶部按钮
+          value: true
+          help: 页面下滑后右下角显示返回顶部按钮
+        - $formkit: checkbox
+          name: enable_image_lightbox
+          label: 图片点击放大
+          value: true
+          help: 点击正文中的图片可在浮层中查看大图
+    - group: sidebar
+      label: 侧栏
+      formSchema:
+        - $formkit: checkbox
+          name: show_recent
+          label: 显示最新文章
+          value: true
+        - $formkit: checkbox
+          name: show_random
+          label: 显示随机推荐
+          value: true
+          help: 每次访问随机挑选文章,可用于提升旧文曝光
+        - $formkit: checkbox
+          name: show_stats
+          label: 显示站点统计
+          value: true
+          help: 展示文章数、分类数、访问量与评论数
+        - $formkit: number
+          name: sidebar_post_count
+          label: 侧栏文章条数
+          value: 5
+          min: 1
+          max: 20
+          help: 最新文章和随机推荐各自展示的条数
+    - group: seo
+      label: SEO
+      formSchema:
+        - $formkit: checkbox
+          name: enable_metadata
+          label: 输出 canonical 与社交分享标签
+          value: false
+          help: 已通过插件提供同类标签时请保持关闭,避免重复
+        - $formkit: checkbox
+          name: enable_structured_data
+          label: 输出文章结构化数据
+          value: false
+          help: 以 JSON-LD 输出 BlogPosting,已由插件提供时请保持关闭
+    - group: basic
+      label: 其他
+      formSchema:
+        - $formkit: text
+          name: custom_footer
+          label: 自定义页脚
+          value: ""
+          placeholder: "例如:Copyright © 2026 My Site"
+        - $formkit: text
+          name: icp_number
+          label: ICP 备案号
+          value: ""
+          placeholder: "例如:京ICP备00000000号"
+        - $formkit: text
+          name: icp_link
+          label: ICP 备案链接
+          value: "https://beian.miit.gov.cn/"
+          placeholder: "https://beian.miit.gov.cn/"
+        - $formkit: checkbox
+          name: show_running_days
+          label: 页脚显示站点运行天数
+          value: false
+          help: 从第一篇文章的发布时间开始计算

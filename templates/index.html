@@ -1,0 +1,41 @@
+<!doctype html>
+<html
+  xmlns:th="https://www.thymeleaf.org"
+  th:replace="~{modules/layout :: html(head = ~{::head}, content = ~{::content}, aside = ~{::aside})}"
+>
+  <th:block th:fragment="head">
+    <title th:text="${site.title}">Site Title</title>
+    <th:block
+      th:replace="~{modules/seo :: meta(type = 'website', title = ${site.title}, description = ${site.seo.description}, path = ${'/'}, image = ${site.logo}, author = null, published = null, modified = null)}"
+    />
+  </th:block>
+
+  <th:block th:fragment="content">
+    <section
+      class="hero"
+      th:if="${theme.config.appearance?.show_hero ?: true}"
+    >
+      <h1 th:text="${site.title}">Site Title</h1>
+      <p th:if="${not #strings.isEmpty(site.subtitle)}" th:text="${site.subtitle}"></p>
+    </section>
+
+    <div class="post-grid" th:if="${not #lists.isEmpty(posts.items)}">
+      <th:block th:each="post : ${posts.items}">
+        <th:block th:replace="~{modules/post-card :: card(post = ${post})}" />
+      </th:block>
+    </div>
+
+    <p class="empty-tip" th:if="${#lists.isEmpty(posts.items)}" th:text="#{home.empty}"></p>
+
+    <th:block th:replace="~{modules/pagination :: pagination(result = ${posts})}" />
+  </th:block>
+
+  <th:block th:fragment="aside">
+    <th:block th:replace="~{widgets :: profile}" />
+    <th:block th:replace="~{widgets :: stats}" />
+    <th:block th:replace="~{widgets :: recent}" />
+    <th:block th:replace="~{widgets :: random}" />
+    <th:block th:replace="~{widgets :: categories}" />
+    <th:block th:replace="~{widgets :: tags}" />
+  </th:block>
+</html>

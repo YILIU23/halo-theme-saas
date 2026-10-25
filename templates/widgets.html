@@ -1,0 +1,132 @@
+<!doctype html>
+<html
+  lang="en"
+  xmlns:th="https://www.thymeleaf.org"
+  th:fragment="widgets"
+>
+  <th:block th:fragment="profile">
+    <section class="widget widget-profile">
+      <img
+        th:if="${not #strings.isEmpty(site.logo)}"
+        th:src="${site.logo}"
+        th:alt="${site.title}"
+        class="widget-avatar"
+        loading="lazy"
+      />
+      <h3 th:text="${site.title}">Site Title</h3>
+      <p th:if="${not #strings.isEmpty(site.subtitle)}" th:text="${site.subtitle}"></p>
+    </section>
+  </th:block>
+
+  <th:block th:fragment="stats">
+    <section
+      class="widget widget-stats"
+      th:if="${theme.config.sidebar?.show_stats ?: true}"
+      th:with="stats = ${siteStatsFinder.getStats()}"
+    >
+      <h3 class="widget-title" th:text="#{widgets.stats}">Site stats</h3>
+      <dl class="stats-grid">
+        <div>
+          <dt th:text="#{stats.posts}">Posts</dt>
+          <dd th:text="${stats.post}">0</dd>
+        </div>
+        <div>
+          <dt th:text="#{stats.categories}">Categories</dt>
+          <dd th:text="${stats.category}">0</dd>
+        </div>
+        <div>
+          <dt th:text="#{stats.views}">Views</dt>
+          <dd th:text="${stats.visit}">0</dd>
+        </div>
+        <div>
+          <dt th:text="#{stats.comments}">Comments</dt>
+          <dd th:text="${stats.comment}">0</dd>
+        </div>
+      </dl>
+    </section>
+  </th:block>
+
+  <th:block th:fragment="categories">
+    <th:block th:with="cats = ${categoryFinder.listAsTree()}">
+    <section class="widget" th:if="${not #lists.isEmpty(cats)}">
+      <h3 class="widget-title" th:text="#{widgets.categories}">Categories</h3>
+      <ul class="widget-list widget-cats">
+        <li
+          th:each="cat : ${cats}"
+          th:classappend="${not #lists.isEmpty(cat.children)} ? 'has-children'"
+        >
+          <a th:href="@{${cat.status.permalink}}">
+            <span th:text="${cat.spec.displayName}">Category</span>
+            <span class="widget-count" th:text="${cat.postCount}">0</span>
+          </a>
+          <ul th:if="${not #lists.isEmpty(cat.children)}" class="widget-sublist">
+            <li th:each="child : ${cat.children}">
+              <a th:href="@{${child.status.permalink}}">
+                <span th:text="${child.spec.displayName}">Child</span>
+                <span class="widget-count" th:text="${child.postCount}">0</span>
+              </a>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </section>
+    </th:block>
+  </th:block>
+
+  <th:block th:fragment="tags">
+    <section class="widget" th:with="tagList = ${tagFinder.listAll()}">
+      <h3 class="widget-title" th:text="#{widgets.tags}">Tags</h3>
+      <div class="widget-tags" th:if="${not #lists.isEmpty(tagList)}">
+        <a
+          th:each="t, st : ${tagList}"
+          th:if="${st.index < 24}"
+          th:href="@{${t.status.permalink}}"
+          th:text="${t.spec.displayName}"
+          th:attr="title=${#strings.concat(t.spec.displayName, ' (', t.postCount, ')')}"
+          class="tag-chip"
+        ></a>
+      </div>
+      <p class="widget-empty" th:if="${#lists.isEmpty(tagList)}" th:text="#{tags.empty}"></p>
+    </section>
+  </th:block>
+
+  <th:block th:fragment="recent">
+    <section
+      class="widget"
+      th:if="${theme.config.sidebar?.show_recent ?: true}"
+      th:with="recent = ${postFinder.list({page: 1, size: (theme.config.sidebar?.sidebar_post_count ?: 5)})}"
+    >
+      <h3 class="widget-title" th:text="#{widgets.recent}">Recent posts</h3>
+      <ul class="widget-list widget-recent" th:if="${not #lists.isEmpty(recent.items)}">
+        <li th:each="p : ${recent.items}">
+          <a th:href="@{${p.status.permalink}}" th:text="${p.spec.title}">Post</a>
+        </li>
+      </ul>
+      <p class="widget-empty" th:if="${#lists.isEmpty(recent.items)}" th:text="#{home.empty}"></p>
+    </section>
+  </th:block>
+
+  <th:block th:fragment="random">
+    <section
+      class="widget"
+      th:if="${theme.config.sidebar?.show_random ?: true}"
+      th:with="randomPosts = ${postFinder.random(theme.config.sidebar?.sidebar_post_count ?: 5)}"
+    >
+      <h3 class="widget-title" th:text="#{widgets.random}">Random posts</h3>
+      <ul class="widget-list widget-recent" th:if="${not #lists.isEmpty(randomPosts)}">
+        <li th:each="p : ${randomPosts}">
+          <a th:href="@{${p.status.permalink}}" th:text="${p.spec.title}">Post</a>
+        </li>
+      </ul>
+      <p class="widget-empty" th:if="${#lists.isEmpty(randomPosts)}" th:text="#{home.empty}"></p>
+    </section>
+  </th:block>
+
+  <!-- 通用侧栏组合: 文章页与归档页共用 -->
+  <th:block th:fragment="sidebar">
+    <th:block th:replace="~{widgets :: recent}" />
+    <th:block th:replace="~{widgets :: random}" />
+    <th:block th:replace="~{widgets :: categories}" />
+    <th:block th:replace="~{widgets :: tags}" />
+  </th:block>
+</html>

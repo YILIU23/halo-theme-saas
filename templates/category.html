@@ -1,0 +1,54 @@
+<!doctype html>
+<html
+  xmlns:th="https://www.thymeleaf.org"
+  th:replace="~{modules/layout :: html(head = ~{::head}, content = ~{::content}, aside = ~{::aside})}"
+>
+  <th:block th:fragment="head">
+    <title th:text="|${category.spec.displayName} - ${site.title}|"></title>
+    <!-- 分页页不复用首页 canonical, 无法得到可靠的当前页地址时留空 -->
+    <th:block
+      th:replace="~{modules/seo :: meta(type = 'website', title = ${category.spec.displayName + ' - ' + site.title}, description = ${category.spec.description}, path = ${posts.page > 1 ? null : category.status.permalink}, image = ${category.spec.cover}, author = null, published = null, modified = null)}"
+    />
+  </th:block>
+
+  <th:block th:fragment="content">
+    <div class="page-head">
+      <p class="page-head-label" th:text="#{category.title}">Category</p>
+      <h1 th:text="${category.spec.displayName}"></h1>
+      <p
+        class="page-head-desc"
+        th:if="${not #strings.isEmpty(category.spec.description)}"
+        th:text="${category.spec.description}"
+      ></p>
+    </div>
+
+    <!-- 子分类 -->
+    <div
+      class="subcat-chips"
+      th:if="${not #lists.isEmpty(categoryFinder.listAsTree(category.metadata.name))}"
+      th:with="tree = ${categoryFinder.listAsTree(category.metadata.name)}"
+    >
+      <a
+        th:each="child : ${tree[0].children}"
+        th:href="@{${child.status.permalink}}"
+        th:text="${child.spec.displayName}"
+        class="tag-chip"
+      ></a>
+    </div>
+
+    <div class="post-grid" th:if="${not #lists.isEmpty(posts.items)}">
+      <th:block th:each="post : ${posts.items}">
+        <th:block th:replace="~{modules/post-card :: card(post = ${post})}" />
+      </th:block>
+    </div>
+
+    <p class="empty-tip" th:if="${#lists.isEmpty(posts.items)}" th:text="#{category.empty}"></p>
+
+    <th:block th:replace="~{modules/pagination :: pagination(result = ${posts})}" />
+  </th:block>
+
+  <th:block th:fragment="aside">
+    <th:block th:replace="~{widgets :: categories}" />
+    <th:block th:replace="~{widgets :: tags}" />
+  </th:block>
+</html>

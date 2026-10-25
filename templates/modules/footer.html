@@ -1,0 +1,87 @@
+<th:block xmlns:th="https://www.thymeleaf.org">
+  <footer th:fragment="footer" class="site-footer">
+    <div class="container">
+      <p
+        th:if="${not #strings.isEmpty(theme.config.basic?.custom_footer)}"
+        th:text="${theme.config.basic.custom_footer}"
+      ></p>
+      <p th:unless="${not #strings.isEmpty(theme.config.basic?.custom_footer)}">
+        <span th:text="|© ${#temporals.format(#temporals.createNow(), 'yyyy')} ${site.title}|"></span>
+      </p>
+
+      <p class="footer-meta">
+        <a th:href="@{/rss.xml}" th:text="RSS">RSS</a>
+        <th:block th:if="${theme.config.basic?.show_running_days ?: false}">
+          <span
+            class="footer-running"
+            th:with="oldest = ${postFinder.list({page: 1, size: 1, sort: {'spec.publishTime,asc'}})}"
+          >
+            <span class="footer-sep" aria-hidden="true">·</span>
+            <span
+              th:if="${not #lists.isEmpty(oldest.items)}"
+              class="footer-running-days"
+              th:attr="data-since=${#temporals.format(oldest.items[0].spec.publishTime, 'yyyy-MM-dd')}"
+            ></span>
+          </span>
+        </th:block>
+        <span class="footer-sep" aria-hidden="true">·</span>
+        <a
+          href="https://www.halo.run"
+          target="_blank"
+          rel="noopener noreferrer"
+          th:text="#{footer.poweredBy('Halo')}"
+        ></a>
+      </p>
+
+      <!--
+        主题作者信息。
+        author.name / author.website 与 theme.yaml 保持同步; QQ 与邮箱在
+        Halo 的 Theme.author schema 里没有对应字段, 只能写在这里。
+        不用 ${theme.spec.author} 是因为它读的是数据库里的主题记录,
+        不重装主题就不会随 theme.yaml 更新。
+      -->
+      <p class="footer-author">
+        <span th:text="#{footer.themeBy('流鸢iris')}">Theme by 流鸢iris</span>
+        <span class="footer-sep" aria-hidden="true">·</span>
+        <a
+          href="https://github.com/YILIU23"
+          target="_blank"
+          rel="noopener noreferrer"
+          title="https://github.com/YILIU23"
+          >GitHub</a
+        >
+        <span class="footer-sep" aria-hidden="true">·</span>
+        <a href="mailto:yiliu2333@outlook.com" title="yiliu2333@outlook.com"
+          >yiliu2333@outlook.com</a
+        >
+        <span class="footer-sep" aria-hidden="true">·</span>
+        <span title="QQ">QQ 334565041</span>
+      </p>
+
+      <p
+        class="footer-icp"
+        th:if="${not #strings.isEmpty(theme.config.basic?.icp_number)}"
+      >
+        <a
+          th:href="${#strings.isEmpty(theme.config.basic?.icp_link) ? 'https://beian.miit.gov.cn/' : theme.config.basic.icp_link}"
+          target="_blank"
+          rel="noopener noreferrer nofollow"
+          th:text="${theme.config.basic.icp_number}"
+        ></a>
+      </p>
+
+      <halo:footer />
+    </div>
+
+    <!-- 必须在 footer 片段内部, 否则不会被 th:replace 带入页面 -->
+    <a
+      th:if="${theme.config.reading?.enable_back_to_top ?: true}"
+      href="#main"
+      id="back-to-top"
+      class="back-to-top"
+      th:attr="aria-label=#{backToTop}"
+    >
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg>
+    </a>
+  </footer>
+</th:block>

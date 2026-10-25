@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450" role="img" aria-label="No cover">
+  <!--
+    内置封面占位图。背景保持透明, 由所在容器的背景色决定观感,
+    图形本身用中性灰, 明暗两种模式下都不过分显眼。
+    (外部 SVG 经 <img> 引入时读不到页面 CSS 变量, 因此这里不引用 var())
+  -->
+  <g fill="none" stroke="#8b949e" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" opacity="0.45" transform="translate(400 225)">
+    <rect x="-96" y="-66" width="192" height="132" rx="14" />
+    <circle cx="-46" cy="-28" r="14" />
+    <path d="M-84 50 L-18 -14 L26 28 L56 0 L96 42" />
+  </g>
+</svg>

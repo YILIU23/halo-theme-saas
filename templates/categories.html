@@ -1,0 +1,43 @@
+<!doctype html>
+<html
+  xmlns:th="https://www.thymeleaf.org"
+  th:replace="~{modules/layout :: html(head = ~{::head}, content = ~{::content}, aside = null)}"
+>
+  <th:block th:fragment="head">
+    <title th:text="|#{categories.title} - ${site.title}|">Categories</title>
+  </th:block>
+
+  <th:block th:fragment="content">
+    <div class="page-head">
+      <h1 th:text="#{categories.title}">Categories</h1>
+    </div>
+
+    <!-- categories 是 List<CategoryTreeVo>, 通过 children 递归展示层级 -->
+    <div class="taxonomy-grid" th:if="${not #lists.isEmpty(categories)}">
+      <div
+        class="taxonomy-card"
+        th:each="cat : ${categories}"
+        th:classappend="${not #lists.isEmpty(cat.children)} ? 'has-children'"
+      >
+        <a th:href="@{${cat.status.permalink}}" class="taxonomy-card-head">
+          <h2 th:text="${cat.spec.displayName}"></h2>
+          <span class="widget-count" th:text="#{categories.postCount(${cat.postCount})}">0</span>
+        </a>
+        <p
+          th:if="${not #strings.isEmpty(cat.spec.description)}"
+          th:text="${cat.spec.description}"
+        ></p>
+        <ul class="taxonomy-children" th:if="${not #lists.isEmpty(cat.children)}">
+          <li th:each="child : ${cat.children}">
+            <a th:href="@{${child.status.permalink}}">
+              <span th:text="${child.spec.displayName}">Child</span>
+              <span class="widget-count" th:text="${child.postCount}">0</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <p class="empty-tip" th:if="${#lists.isEmpty(categories)}" th:text="#{categories.empty}"></p>
+  </th:block>
+</html>

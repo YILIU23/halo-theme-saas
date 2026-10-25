@@ -1,0 +1,43 @@
+<!doctype html>
+<html
+  xmlns:th="https://www.thymeleaf.org"
+  th:replace="~{modules/layout :: html(head = ~{::head}, content = ~{::content}, aside = ~{::aside})}"
+>
+  <th:block th:fragment="head">
+    <title th:text="|#{archives.title} - ${site.title}|">Archives</title>
+  </th:block>
+
+  <th:block th:fragment="content">
+    <div class="page-head">
+      <p class="page-head-label" th:text="#{archives.title}">Archives</p>
+      <h1 th:text="#{archives.title}">Archives</h1>
+    </div>
+
+    <div class="archive-list">
+      <section class="archive-group" th:each="archive : ${archives.items}">
+        <h2 th:text="${archive.year}"></h2>
+        <div class="archive-month" th:each="month : ${archive.months}">
+          <h3 class="archive-month-title" th:text="#{archives.monthLabel(${month.month})}"></h3>
+          <a
+            class="archive-item"
+            th:each="post : ${month.posts}"
+            th:href="@{${post.status.permalink}}"
+          >
+            <time th:text="${#temporals.format(post.spec.publishTime, 'MM-dd')}"></time>
+            <span th:text="${post.spec.title}"></span>
+          </a>
+        </div>
+      </section>
+    </div>
+
+    <p class="empty-tip" th:if="${#lists.isEmpty(archives.items)}" th:text="#{archives.empty}"></p>
+
+    <th:block th:replace="~{modules/pagination :: pagination(result = ${archives})}" />
+  </th:block>
+
+  <th:block th:fragment="aside">
+    <th:block th:replace="~{widgets :: recent}" />
+    <th:block th:replace="~{widgets :: categories}" />
+    <th:block th:replace="~{widgets :: tags}" />
+  </th:block>
+</html>

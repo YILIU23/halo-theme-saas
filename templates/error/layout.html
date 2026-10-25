@@ -1,0 +1,88 @@
+<!doctype html>
+<html
+  lang="en"
+  xmlns:th="https://www.thymeleaf.org"
+  th:lang="${#locale.toLanguageTag}"
+  th:fragment="html (code, titleKey, descriptionKey, detail, status, instance)"
+  th:with="scheme = ${theme.config.appearance?.default_color_scheme ?: 'system'},
+           schemeClass = ${scheme == 'light' ? 'color-scheme-light' : (scheme == 'dark' ? 'color-scheme-dark' : 'color-scheme-auto')},
+           schemeData = ${scheme == 'light' ? 'light' : (scheme == 'dark' ? 'dark' : 'auto')},
+           boxMode = ${theme.config.layout?.enable_global_box ?: true},
+           boxShadow = ${theme.config.layout?.global_box_shadow ?: true},
+           assetRev = '1.2.0.4'"
+  th:class="${schemeClass}"
+  th:attr="data-color-scheme=${schemeData}"
+>
+  <!--
+    错误页专用布局。
+    注意: 错误渲染可能发生在主题配置尚未加载等异常场景, 因此这里不依赖
+    menuFinder / postFinder 等数据查询, 只输出静态外壳, 避免错误页本身再次报错。
+  -->
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title th:text="|#{${titleKey}} - ${site.title}|"></title>
+    <meta name="robots" content="noindex" />
+    <link rel="stylesheet" th:href="@{/assets/css/style.css(v=${assetRev})}" />
+    <style
+      th:inline="none"
+      th:with="
+        c1 = ${theme.config.colors?.primary_color ?: '#4f6bf6'},
+        c2 = ${theme.config.colors?.secondary_color ?: '#8b5cf6'},
+        bg1 = ${theme.config.colors?.light_background ?: '#f6f7fb'},
+        bg2 = ${theme.config.colors?.dark_background ?: '#0e1116'}"
+      th:text="|:root{--color-primary:${c1};--color-secondary:${c2};--bg-light:${bg1};--bg-dark:${bg2};}|"
+    >:root{--color-primary:#4f6bf6;--color-secondary:#8b5cf6;--bg-light:#f6f7fb;--bg-dark:#0e1116;}</style>
+    <script>
+      (function () {
+        var root = document.documentElement;
+        var saved = null;
+        try {
+          saved = localStorage.getItem("saas-theme-mode");
+        } catch (e) {}
+        var pref = root.getAttribute("data-color-scheme");
+        var mode =
+          saved === "dark" || saved === "light"
+            ? saved
+            : pref === "dark" || pref === "light"
+              ? pref
+              : window.matchMedia("(prefers-color-scheme: dark)").matches
+                ? "dark"
+                : "light";
+        root.setAttribute("data-mode", mode);
+        root.setAttribute("data-color-scheme", mode);
+        root.classList.remove("color-scheme-auto", "color-scheme-light", "color-scheme-dark");
+        root.classList.add("color-scheme-" + mode);
+      })();
+    </script>
+  </head>
+  <!--
+    错误页同样支持大盒子布局。错误可能发生在主题配置尚未加载时,
+    因此这里用 ?: 兜底, 取不到配置就按全屏铺满渲染。
+  -->
+  <body
+    th:classappend="${boxMode ? (boxShadow ? 'global-box-mode' : 'global-box-mode no-box-shadow') : ''}"
+  >
+    <div class="site-box">
+      <main class="error-page container" id="main">
+        <div class="error-card">
+          <p class="error-code" th:text="${status ?: code}">404</p>
+          <h1 th:text="#{${titleKey}}">Page not found</h1>
+          <p class="error-desc" th:text="#{${descriptionKey}}"></p>
+          <p
+            class="error-detail"
+            th:if="${not #strings.isEmpty(detail)}"
+            th:text="${detail}"
+          ></p>
+          <div class="error-actions">
+            <a class="page-btn" th:href="@{/}" th:text="#{error.backHome}">Back to home</a>
+            <a class="page-btn" href="javascript:history.back()" th:text="#{error.backPrev}">Go back</a>
+          </div>
+          <p class="error-ref" th:if="${not #strings.isEmpty(instance)}">
+            <span th:text="${instance}"></span>
+          </p>
+        </div>
+      </main>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,156 @@
+<!doctype html>
+<html
+  xmlns:th="https://www.thymeleaf.org"
+  th:replace="~{modules/layout :: html(head = ~{::head}, content = ~{::content}, aside = ~{::aside})}"
+>
+  <th:block th:fragment="head">
+    <title th:text="|${post.spec.title} - ${site.title}|"></title>
+    <th:block
+      th:replace="~{modules/seo :: meta(type = 'article', title = ${post.spec.title}, description = ${post.status.excerpt}, path = ${post.status.permalink}, image = ${post.spec.cover}, author = ${post.owner.displayName}, published = ${#temporals.format(post.spec.publishTime, 'yyyy-MM-dd')}, modified = ${#temporals.format(post.status.lastModifyTime, 'yyyy-MM-dd')})}"
+    />
+    <script defer th:src="@{/assets/js/highlight.min.js(v=${assetRev})}"></script>
+  </th:block>
+
+  <th:block th:fragment="content">
+    <div
+      class="reading-progress"
+      id="reading-progress"
+      th:if="${theme.config.reading?.enable_reading_progress ?: true}"
+      aria-hidden="true"
+    >
+      <span class="reading-progress-bar" id="reading-progress-bar"></span>
+    </div>
+
+    <!-- 详情页封面同样走降级链: 文章封面 -> 全局默认封面 -> 内置占位图 -->
+    <article
+      class="post-detail"
+      th:attr="data-reading-time=${theme.config.reading?.enable_reading_time ?: true}"
+      th:with="
+        defaultCover = ${theme.config.cover?.default_post_cover ?: ''},
+        cover = ${not #strings.isEmpty(post.spec.cover) ? post.spec.cover : defaultCover}"
+    >
+      <header class="post-header">
+        <nav
+          class="post-categories"
+          th:if="${not #lists.isEmpty(post.categories)}"
+        >
+          <a
+            th:each="cat : ${post.categories}"
+            th:href="@{${cat.status.permalink}}"
+            th:text="${cat.spec.displayName}"
+            class="tag-chip"
+          ></a>
+        </nav>
+        <h1 th:text="${post.spec.title}"></h1>
+        <div class="post-header-meta">
+          <a
+            th:href="@{${post.owner.permalink}}"
+            th:text="${post.owner.displayName}"
+          ></a>
+          <time
+            th:datetime="${#temporals.format(post.spec.publishTime, 'yyyy-MM-dd')}"
+            th:text="${#temporals.format(post.spec.publishTime, 'yyyy-MM-dd HH:mm')}"
+          ></time>
+          <span th:text="#{post.viewsCount(${post.stats.visit})}">0 views</span>
+          <span
+            th:if="${post.stats.comment > 0}"
+            th:text="#{post.commentsCount(${post.stats.comment})}"
+          ></span>
+          <span
+            class="reading-time"
+            id="reading-time"
+            th:attr="data-template=#{post.readingTime}"
+            th:if="${theme.config.reading?.enable_reading_time ?: true}"
+          ></span>
+        </div>
+        <img
+          th:if="${not #strings.isEmpty(cover)}"
+          th:src="${cover}"
+          th:alt="${post.spec.title}"
+          class="post-cover"
+          loading="eager"
+        />
+        <img
+          th:if="${#strings.isEmpty(cover)}"
+          th:src="@{/assets/images/cover-placeholder.svg}"
+          alt=""
+          class="post-cover post-cover-placeholder"
+          loading="eager"
+        />
+      </header>
+
+      <div
+        class="post-content"
+        id="post-content"
+        th:utext="${post.content.content}"
+      ></div>
+
+      <div class="post-tags" th:if="${not #lists.isEmpty(post.tags)}">
+        <a
+          th:each="tag : ${post.tags}"
+          th:href="@{${tag.status.permalink}}"
+          th:text="|# ${tag.spec.displayName}|"
+          class="tag-chip"
+        ></a>
+      </div>
+
+      <div
+        class="post-share"
+        id="post-share"
+        th:if="${theme.config.reading?.enable_share ?: true}"
+        th:attr="data-title=${post.spec.title}, data-url=${site.url + post.status.permalink}"
+      >
+        <span class="post-share-label" th:text="#{post.share}">Share</span>
+        <button type="button" class="share-btn" data-share="copy" th:text="#{post.copyLink}">Copy link</button>
+        <button type="button" class="share-btn" data-share="weibo" th:text="#{post.weibo}">Weibo</button>
+        <button type="button" class="share-btn" data-share="x" th:text="#{post.twitter}">X</button>
+      </div>
+    </article>
+
+    <nav
+      class="post-navigation"
+      th:with="cursor = ${postFinder.cursor(post.metadata.name)}"
+    >
+      <a
+        class="post-nav-card prev"
+        th:if="${cursor.hasPrevious()}"
+        th:href="@{${cursor.previous.status.permalink}}"
+        rel="prev"
+      >
+        <span th:text="#{post.prev}">Previous post</span>
+        <strong th:text="${cursor.previous.spec.title}">Previous</strong>
+      </a>
+      <a
+        class="post-nav-card next"
+        th:if="${cursor.hasNext()}"
+        th:href="@{${cursor.next.status.permalink}}"
+        rel="next"
+      >
+        <span th:text="#{post.next}">Next post</span>
+        <strong th:text="${cursor.next.spec.title}">Next</strong>
+      </a>
+    </nav>
+
+    <div class="comments" th:if="${haloCommentEnabled and post.spec.allowComment}">
+      <halo:comment
+        group="content.halo.run"
+        kind="Post"
+        th:attr="name=${post.metadata.name}"
+      />
+    </div>
+  </th:block>
+
+  <th:block th:fragment="aside">
+    <section
+      class="widget widget-toc"
+      id="toc-widget"
+      th:if="${theme.config.appearance?.enable_toc ?: true}"
+    >
+      <h3 class="widget-title" th:text="#{post.toc}">On this page</h3>
+      <nav id="toc" class="toc"></nav>
+    </section>
+    <th:block th:replace="~{widgets :: recent}" />
+    <th:block th:replace="~{widgets :: categories}" />
+    <th:block th:replace="~{widgets :: tags}" />
+  </th:block>
+</html>

@@ -1,0 +1,26 @@
+apiVersion: theme.halo.run/v1alpha1
+kind: Theme
+metadata:
+  name: saas-theme
+spec:
+  displayName: SaaS Theme
+  author:
+    # 主题作者。Halo 的 Theme.author 只支持 name 与 website 两个字段,
+    # 因此 QQ / 邮箱写在此处注释里, 并同时硬编码展示在页脚
+    # (templates/modules/footer.html 的 .footer-author)。
+    #   作者: 流鸢iris
+    #   QQ:   334565041
+    #   邮箱: yiliu2333@outlook.com
+    name: 流鸢iris
+    website: "https://github.com/YILIU23"
+  description: 现代 SaaS 风格的 Halo 主题,支持明暗模式切换、文章目录、阅读进度、代码高亮、分享与多语言
+  logo: ""
+  homepage: "https://github.com/YILIU23"
+  repo: "https://github.com/YILIU23/halo-theme-saas"
+  issues: "https://github.com/YILIU23/halo-theme-saas/issues"
+  settingName: "saas-theme-setting"
+  configMapName: "saas-theme-configmap"
+  version: 1.2.0
+  requires: ">=2.26.0"
+  license:
+    - name: "MIT"

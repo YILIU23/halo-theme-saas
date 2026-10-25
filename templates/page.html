@@ -1,0 +1,61 @@
+<!doctype html>
+<html
+  xmlns:th="https://www.thymeleaf.org"
+  th:replace="~{modules/layout :: html(head = ~{::head}, content = ~{::content}, aside = ~{::aside})}"
+>
+  <th:block th:fragment="head">
+    <title th:text="|${singlePage.spec.title} - ${site.title}|"></title>
+    <th:block
+      th:replace="~{modules/seo :: meta(type = 'website', title = ${singlePage.spec.title}, description = ${singlePage.status.excerpt}, path = ${singlePage.status.permalink}, image = ${singlePage.spec.cover}, author = null, published = ${#temporals.format(singlePage.spec.publishTime, 'yyyy-MM-dd')}, modified = ${#temporals.format(singlePage.status.lastModifyTime, 'yyyy-MM-dd')})}"
+    />
+    <script defer th:src="@{/assets/js/highlight.min.js(v=${assetRev})}"></script>
+  </th:block>
+
+  <th:block th:fragment="content">
+    <div
+      class="reading-progress"
+      id="reading-progress"
+      th:if="${theme.config.reading?.enable_reading_progress ?: true}"
+      aria-hidden="true"
+    >
+      <span class="reading-progress-bar" id="reading-progress-bar"></span>
+    </div>
+
+    <article class="post-detail">
+      <header class="post-header">
+        <h1 th:text="${singlePage.spec.title}"></h1>
+        <div class="post-header-meta" th:if="${theme.config.reading?.enable_reading_time ?: true}">
+          <span
+            class="reading-time"
+            id="reading-time"
+            th:attr="data-template=#{post.readingTime}"
+          ></span>
+        </div>
+      </header>
+      <div
+        class="post-content"
+        id="post-content"
+        th:utext="${singlePage.content.content}"
+      ></div>
+    </article>
+
+    <div class="comments" th:if="${haloCommentEnabled and singlePage.spec.allowComment}">
+      <halo:comment
+        group="content.halo.run"
+        kind="SinglePage"
+        th:attr="name=${singlePage.metadata.name}"
+      />
+    </div>
+  </th:block>
+
+  <th:block th:fragment="aside">
+    <section
+      class="widget widget-toc"
+      id="toc-widget"
+      th:if="${theme.config.appearance?.enable_toc ?: true}"
+    >
+      <h3 class="widget-title" th:text="#{post.toc}">On this page</h3>
+      <nav id="toc" class="toc"></nav>
+    </section>
+  </th:block>
+</html>

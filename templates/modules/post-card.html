@@ -1,0 +1,81 @@
+<th:block xmlns:th="https://www.thymeleaf.org">
+  <!--
+    文章卡片: 首页与各归档页共用。
+    封面降级顺序: 文章封面 -> 主题设置的全局默认封面 -> 内置占位图。
+    占位图不参与 thumbnail.gen(): 它走的是附件缩略图接口, 对主题自带资源会 404。
+  -->
+  <article
+    th:fragment="card (post)"
+    class="post-card"
+    th:with="
+      ownCover = ${post.spec.cover},
+      defaultCover = ${theme.config.cover?.default_post_cover ?: ''},
+      cover = ${not #strings.isEmpty(ownCover) ? ownCover : defaultCover}"
+  >
+    <a
+      class="post-card-cover"
+      th:href="@{${post.status.permalink}}"
+      tabindex="-1"
+      aria-hidden="true"
+    >
+      <img
+        th:if="${not #strings.isEmpty(cover)}"
+        th:src="${cover}"
+        th:srcset="|${thumbnail.gen(cover, 's')} 400w, ${thumbnail.gen(cover, 'm')} 800w|"
+        sizes="(max-width: 640px) 100vw, 400px"
+        th:alt="${post.spec.title}"
+        loading="lazy"
+        decoding="async"
+      />
+      <!-- 内置占位图: 主题资源, 不参与缩略图 -->
+      <img
+        th:if="${#strings.isEmpty(cover)}"
+        th:src="@{/assets/images/cover-placeholder.svg}"
+        alt=""
+        class="post-card-cover-placeholder"
+        loading="lazy"
+        decoding="async"
+      />
+    </a>
+    <div class="post-card-body">
+      <div class="post-card-meta">
+        <span class="pin-badge" th:if="${post.spec.pinned}" th:text="#{post.pinned}">Pinned</span>
+        <a
+          class="post-card-category"
+          th:if="${not #lists.isEmpty(post.categories)}"
+          th:href="@{${post.categories[0].status.permalink}}"
+          th:text="${post.categories[0].spec.displayName}"
+        ></a>
+        <time
+          th:datetime="${#temporals.format(post.spec.publishTime, 'yyyy-MM-dd')}"
+          th:text="${#temporals.format(post.spec.publishTime, 'yyyy-MM-dd')}"
+        ></time>
+      </div>
+      <h2 class="post-card-title">
+        <a th:href="@{${post.status.permalink}}" th:text="${post.spec.title}"></a>
+      </h2>
+      <p
+        class="post-card-excerpt"
+        th:if="${not #strings.isEmpty(post.status.excerpt)}"
+        th:text="${post.status.excerpt}"
+      ></p>
+      <div class="post-card-footer">
+        <a
+          class="post-card-owner"
+          th:href="@{${post.owner.permalink}}"
+          th:text="${post.owner.displayName}"
+        ></a>
+        <span class="post-card-stats">
+          <span th:text="#{post.viewsCount(${post.stats.visit})}">0 views</span>
+          <span
+            th:if="${post.stats.comment > 0}"
+            th:text="#{post.commentsCount(${post.stats.comment})}"
+          ></span>
+        </span>
+      </div>
+    </div>
+  </article>
+
+  <!-- 空列表提示 -->
+  <p th:fragment="empty (message)" class="empty-tip" th:text="${message}"></p>
+</th:block>

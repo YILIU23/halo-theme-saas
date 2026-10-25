@@ -1,0 +1,86 @@
+<th:block xmlns:th="https://www.thymeleaf.org">
+  <!--
+    公共 head 内容: 样式、配色变量、明暗模式引导脚本、前端消息。
+    页面标题、canonical、OG 等由各页面通过 head 片段传入。
+  -->
+  <!--
+    静态资源版本号 assetRev 由布局模板 (layout.html / modules/layout.html /
+    error/layout.html) 在 <html> 上以 th:with 声明, 这里与各页面直接复用。
+
+    为什么不用 theme.spec.version:
+    Halo 对 /themes/** 下的静态资源发送 Cache-Control: max-age=31536000,
+    浏览器会缓存一整年, 资源内容变化时必须改变 URL 才能失效。
+    而 theme.spec.version 取自数据库中已登记的 Theme 记录 —— 直接覆盖主题
+    文件后若未在 Console 重新安装或重载, 该值会停留在旧版本, 浏览器就会
+    一直命中旧 CSS/JS (旧样式下 .skip-link 不可见、暗色横幅不生效)。
+    发布时请同步递增 assetRev 与 theme.yaml 的 version。
+  -->
+  <th:block th:fragment="common (rev)">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" th:href="@{/assets/css/style.css(v=${rev})}" />
+    <link rel="stylesheet" th:href="@{/assets/css/highlight.css(v=${rev})}" />
+    <link
+      rel="alternate"
+      type="application/rss+xml"
+      th:href="@{/rss.xml}"
+      th:title="${site.title}"
+    />
+    <style
+      th:inline="none"
+      th:with="
+        c1 = ${theme.config.colors?.primary_color ?: '#4f6bf6'},
+        c2 = ${theme.config.colors?.secondary_color ?: '#8b5cf6'},
+        bg1 = ${theme.config.colors?.light_background ?: '#f6f7fb'},
+        bg2 = ${theme.config.colors?.dark_background ?: '#0e1116'},
+        boxBg1 = ${theme.config.layout?.global_box_bg_light ?: '#ffffff'},
+        boxBg2 = ${theme.config.layout?.global_box_bg_dark ?: '#171b21'},
+        boxRadius = ${theme.config.layout?.global_box_radius ?: 16},
+        boxOpacity = ${theme.config.layout?.global_box_bg_opacity ?: 100}"
+      th:text="|:root{--color-primary:${c1};--color-secondary:${c2};--bg-light:${bg1};--bg-dark:${bg2};--box-bg-light:${boxBg1};--box-bg-dark:${boxBg2};--box-radius:${boxRadius}px;--box-opacity:${boxOpacity}%;}|"
+    >:root{--color-primary:#4f6bf6;--color-secondary:#8b5cf6;--bg-light:#f6f7fb;--bg-dark:#0e1116;--box-bg-light:#ffffff;--box-bg-dark:#171b21;--box-radius:16px;--box-opacity:100%;}</style>
+    <script>
+      // 首屏防闪烁: 在 CSS 生效前就把 data-mode / class 定下来。
+      // 必须同时同步 data-color-scheme 与 color-scheme-* class, 否则
+      // 系统为深色时 data-mode=dark 而 class 仍是 color-scheme-auto,
+      // 官方插件组件会按浅色渲染, 与主题变量不一致。
+      (function () {
+        var root = document.documentElement;
+        var saved = null;
+        try {
+          saved = localStorage.getItem("saas-theme-mode");
+        } catch (e) {}
+        var pref = root.getAttribute("data-color-scheme");
+        var mode;
+        if (saved === "dark" || saved === "light") {
+          mode = saved;
+        } else if (pref === "dark" || pref === "light") {
+          mode = pref;
+        } else {
+          mode = window.matchMedia("(prefers-color-scheme: dark)").matches
+            ? "dark"
+            : "light";
+        }
+        root.setAttribute("data-mode", mode);
+        root.setAttribute("data-color-scheme", mode);
+        root.classList.remove("color-scheme-auto", "color-scheme-light", "color-scheme-dark");
+        root.classList.add("color-scheme-" + mode);
+      })();
+    </script>
+    <script th:inline="javascript">
+      window.saasThemeConfig = {
+        codeCopy: /*[[${theme.config.reading?.enable_code_copy ?: true}]]*/ true,
+        lightbox: /*[[${theme.config.reading?.enable_image_lightbox ?: true}]]*/ true,
+      };
+      window.saasThemeMessages = {
+        copyCode: /*[[#{post.copyCode}]]*/ "",
+        copied: /*[[#{post.copied}]]*/ "",
+        copyFailed: /*[[#{post.copyFailed}]]*/ "",
+        linkCopied: /*[[#{post.linkCopied}]]*/ "",
+        shareUnsupported: /*[[#{post.shareUnsupported}]]*/ "",
+        runningPrefix: /*[[#{footer.runningPrefix}]]*/ "",
+        runningSuffix: /*[[#{footer.runningSuffix}]]*/ "",
+      };
+    </script>
+  </th:block>
+</th:block>

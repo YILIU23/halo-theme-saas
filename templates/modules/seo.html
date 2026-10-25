@@ -1,0 +1,81 @@
+<th:block xmlns:th="https://www.thymeleaf.org">
+  <!--
+    可选 SEO 扩展。Halo 已自动注入 description / keywords / favicon / robots,
+    主题只补充 canonical、社交分享标签与结构化数据, 且必须受主题设置开关控制,
+    以免与插件或系统注入的内容重复。
+    path: 当前页面的 status.permalink (相对路径); 传 null 表示不输出 canonical
+          (例如无法得到可靠地址的分页页)。
+  -->
+  <th:block
+    th:fragment="meta (type, title, description, path, image, author, published, modified)"
+    th:with="
+      siteUrl = ${#strings.endsWith(site.url, '/') ? #strings.substring(site.url, 0, #strings.length(site.url) - 1) : site.url},
+      absUrl = ${path == null ? null : (#strings.startsWith(path, '/') ? siteUrl + path : siteUrl + '/' + path)},
+      shareImage = ${#strings.isEmpty(image) ? site.logo : image}"
+  >
+    <th:block
+      th:if="${theme.config.seo?.enable_metadata ?: false and not #strings.isEmpty(absUrl)}"
+    >
+      <link rel="canonical" th:href="${absUrl}" />
+      <meta property="og:site_name" th:content="${site.title}" />
+      <meta property="og:type" th:content="${type ?: 'website'}" />
+      <meta property="og:title" th:content="${title ?: site.title}" />
+      <meta property="og:url" th:content="${absUrl}" />
+      <meta
+        th:if="${not #strings.isEmpty(description)}"
+        property="og:description"
+        th:content="${description}"
+      />
+      <meta
+        th:if="${not #strings.isEmpty(shareImage)}"
+        property="og:image"
+        th:content="${shareImage}"
+      />
+      <meta
+        th:if="${type == 'article'}"
+        property="article:published_time"
+        th:content="${published}"
+      />
+      <meta
+        th:if="${type == 'article'}"
+        property="article:modified_time"
+        th:content="${modified}"
+      />
+      <meta
+        name="twitter:card"
+        th:content="${not #strings.isEmpty(shareImage) ? 'summary_large_image' : 'summary'}"
+      />
+      <meta name="twitter:title" th:content="${title ?: site.title}" />
+      <meta
+        th:if="${not #strings.isEmpty(description)}"
+        name="twitter:description"
+        th:content="${description}"
+      />
+      <meta
+        th:if="${not #strings.isEmpty(shareImage)}"
+        name="twitter:image"
+        th:content="${shareImage}"
+      />
+    </th:block>
+
+    <th:block th:if="${theme.config.seo?.enable_structured_data ?: false}">
+      <script
+        th:if="${type == 'article' and not #strings.isEmpty(absUrl)}"
+        type="application/ld+json"
+        th:inline="javascript"
+      >
+        {
+          "@context": "https://schema.org",
+          "@type": "BlogPosting",
+          "headline": /*[[${title}]]*/ "",
+          "url": /*[[${absUrl}]]*/ "",
+          "mainEntityOfPage": /*[[${absUrl}]]*/ "",
+          "datePublished": /*[[${published}]]*/ "",
+          "dateModified": /*[[${modified}]]*/ "",
+          "author": { "@type": "Person", "name": /*[[${author}]]*/ "" },
+          "publisher": { "@type": "Organization", "name": /*[[${site.title}]]*/ "" }
+        }
+      </script>
+    </th:block>
+  </th:block>
+</th:block>

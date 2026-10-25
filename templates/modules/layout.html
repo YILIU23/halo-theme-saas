@@ -1,0 +1,48 @@
+<!doctype html>
+<html
+  lang="en"
+  xmlns:th="https://www.thymeleaf.org"
+  th:lang="${#locale.toLanguageTag}"
+  th:fragment="html (head, content, aside)"
+  th:with="scheme = ${theme.config.appearance?.default_color_scheme ?: 'system'},
+           schemeClass = ${scheme == 'light' ? 'color-scheme-light' : (scheme == 'dark' ? 'color-scheme-dark' : 'color-scheme-auto')},
+           schemeData = ${scheme == 'light' ? 'light' : (scheme == 'dark' ? 'dark' : 'auto')},
+           boxMode = ${theme.config.layout?.enable_global_box ?: true},
+           boxShadow = ${theme.config.layout?.global_box_shadow ?: true},
+           assetRev = '1.2.0.4'"
+  th:class="${schemeClass}"
+  th:attr="data-color-scheme=${schemeData}"
+>
+  <!--
+    主题内部私有布局。页面布局契约见 templates/layout.html。
+    大盒子布局: body 加 global-box-mode, 内容整体裹进 .site-box, 说明见 layout.html。
+  -->
+  <head>
+    <th:block th:replace="~{modules/head :: common(rev = ${assetRev})}" />
+    <title th:if="${head == null}" th:text="${site.title}">Site Title</title>
+    <th:block th:if="${head != null}">
+      <th:block th:replace="${head}" />
+    </th:block>
+  </head>
+  <body
+    th:classappend="${boxMode ? (boxShadow ? 'global-box-mode' : 'global-box-mode no-box-shadow') : ''}"
+  >
+    <div class="site-box">
+      <th:block th:replace="~{modules/header :: header}" />
+      <main
+        class="container site-main"
+        id="main"
+        th:classappend="${aside == null} ? 'single-col'"
+      >
+        <div class="content-col">
+          <th:block th:replace="${content}" />
+        </div>
+        <aside class="sidebar-col" th:if="${aside != null}">
+          <th:block th:replace="${aside}" />
+        </aside>
+      </main>
+      <th:block th:replace="~{modules/footer :: footer}" />
+    </div>
+    <script defer th:src="@{/assets/js/main.js(v=${assetRev})}"></script>
+  </body>
+</html>

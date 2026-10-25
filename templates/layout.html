@@ -1,0 +1,47 @@
+<!doctype html>
+<html
+  lang="en"
+  xmlns:th="https://www.thymeleaf.org"
+  th:lang="${#locale.toLanguageTag}"
+  th:fragment="html (head, content)"
+  th:with="scheme = ${theme.config.appearance?.default_color_scheme ?: 'system'},
+           schemeClass = ${scheme == 'light' ? 'color-scheme-light' : (scheme == 'dark' ? 'color-scheme-dark' : 'color-scheme-auto')},
+           schemeData = ${scheme == 'light' ? 'light' : (scheme == 'dark' ? 'dark' : 'auto')},
+           boxMode = ${theme.config.layout?.enable_global_box ?: true},
+           boxShadow = ${theme.config.layout?.global_box_shadow ?: true},
+           assetRev = '1.2.0.4'"
+  th:class="${schemeClass}"
+  th:attr="data-color-scheme=${schemeData}"
+>
+  <!--
+    页面布局契约 (Halo >= 2.26.0): html(head, content)
+    插件前台页面通过 layout :: html(head = ..., content = ...) 复用该外壳。
+    主题自身页面请使用 modules/layout :: html(head, content, aside)。
+
+    大盒子布局: body 加 global-box-mode, 内容整体裹进 .site-box。
+    关闭时 .site-box 不带任何样式, 等价于原来的全屏铺满。
+    .site-box 始终存在是为了让插件通过 content 片段注入的 DOM 也落在同一层,
+    避免开关前后 DOM 层级不一致。
+  -->
+  <head>
+    <th:block th:replace="~{modules/head :: common(rev = ${assetRev})}" />
+    <title th:if="${head == null}" th:text="${site.title}">Site Title</title>
+    <th:block th:if="${head != null}">
+      <th:block th:replace="${head}" />
+    </th:block>
+  </head>
+  <body
+    th:classappend="${boxMode ? (boxShadow ? 'global-box-mode' : 'global-box-mode no-box-shadow') : ''}"
+  >
+    <div class="site-box">
+      <th:block th:replace="~{modules/header :: header}" />
+      <main class="container site-main single-col" id="main">
+        <div class="content-col">
+          <th:block th:replace="${content}" />
+        </div>
+      </main>
+      <th:block th:replace="~{modules/footer :: footer}" />
+    </div>
+    <script defer th:src="@{/assets/js/main.js(v=${assetRev})}"></script>
+  </body>
+</html>
