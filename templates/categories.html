@@ -4,7 +4,7 @@
   th:replace="~{modules/layout :: html(head = ~{::head}, content = ~{::content}, aside = null)}"
 >
   <th:block th:fragment="head">
-    <title th:text="|#{categories.title} - ${site.title}|">Categories</title>
+    <title th:with="pageTitle=#{categories.title}" th:text="${pageTitle + ' - ' + site.title}">Categories</title>
   </th:block>
 
   <th:block th:fragment="content">

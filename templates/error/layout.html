@@ -9,7 +9,7 @@
            schemeData = ${scheme == 'light' ? 'light' : (scheme == 'dark' ? 'dark' : 'auto')},
            boxMode = ${theme.config.layout?.enable_global_box ?: true},
            boxShadow = ${theme.config.layout?.global_box_shadow ?: true},
-           assetRev = '1.2.0.4'"
+           assetRev = '1.3.0'"
   th:class="${schemeClass}"
   th:attr="data-color-scheme=${schemeData}"
 >
@@ -21,18 +21,22 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title th:text="|#{${titleKey}} - ${site.title}|"></title>
+    <title th:with="pageTitle=#{${titleKey}}" th:text="${pageTitle + ' - ' + site.title}"></title>
     <meta name="robots" content="noindex" />
     <link rel="stylesheet" th:href="@{/assets/css/style.css(v=${assetRev})}" />
     <style
       th:inline="none"
       th:with="
-        c1 = ${theme.config.colors?.primary_color ?: '#4f6bf6'},
-        c2 = ${theme.config.colors?.secondary_color ?: '#8b5cf6'},
-        bg1 = ${theme.config.colors?.light_background ?: '#f6f7fb'},
-        bg2 = ${theme.config.colors?.dark_background ?: '#0e1116'}"
-      th:text="|:root{--color-primary:${c1};--color-secondary:${c2};--bg-light:${bg1};--bg-dark:${bg2};}|"
-    >:root{--color-primary:#4f6bf6;--color-secondary:#8b5cf6;--bg-light:#f6f7fb;--bg-dark:#0e1116;}</style>
+        c1 = ${theme.config.colors?.primary_color ?: '#9a4224'},
+        c2 = ${theme.config.colors?.secondary_color ?: '#9a4224'},
+        bg1 = ${theme.config.colors?.light_background ?: '#f2efe7'},
+        bg2 = ${theme.config.colors?.dark_background ?: '#141310'},
+        boxBg1 = ${theme.config.layout?.global_box_bg_light ?: '#fbf9f4'},
+        boxBg2 = ${theme.config.layout?.global_box_bg_dark ?: '#1c1b17'},
+        boxRadius = ${theme.config.layout?.global_box_radius ?: 12},
+        boxOpacity = ${theme.config.layout?.global_box_bg_opacity ?: 100}"
+      th:text="|:root{--color-primary:${c1};--color-secondary:${c2};--bg-light:${bg1};--bg-dark:${bg2};--box-bg-light:${boxBg1};--box-bg-dark:${boxBg2};--box-radius:${boxRadius}px;--box-opacity:${boxOpacity}%;}|"
+    >:root{--color-primary:#9a4224;--color-secondary:#9a4224;--bg-light:#f2efe7;--bg-dark:#141310;--box-bg-light:#fbf9f4;--box-bg-dark:#1c1b17;--box-radius:12px;--box-opacity:100%;}</style>
     <script>
       (function () {
         var root = document.documentElement;

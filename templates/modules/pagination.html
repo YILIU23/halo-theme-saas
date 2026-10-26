@@ -5,24 +5,28 @@
       th:if="${result != null and (result.hasPrevious() or result.hasNext())}"
       th:attr="aria-label=#{pagination.label}"
     >
+      <!--
+        箭头交给 CSS 的 ::before/::after, 文案只走 i18n。
+        字面量替换 |...| 里嵌 #{...} 的行为不保证, 别在这里赌。
+      -->
       <a
-        class="page-btn"
+        class="page-btn prev"
         th:if="${result.hasPrevious()}"
         th:href="@{${result.prevUrl}}"
         rel="prev"
-        th:text="|← #{pagination.previous}|"
-      >← Previous</a>
+        th:text="#{pagination.previous}"
+      >Previous</a>
       <span
         class="page-info"
         th:text="#{pagination.info(${result.page}, ${result.totalPages})}"
       >Page 1 of 1</span>
       <a
-        class="page-btn"
+        class="page-btn next"
         th:if="${result.hasNext()}"
         th:href="@{${result.nextUrl}}"
         rel="next"
-        th:text="|#{pagination.next} →|"
-      >Next →</a>
+        th:text="#{pagination.next}"
+      >Next</a>
     </nav>
   </th:block>
 </th:block>

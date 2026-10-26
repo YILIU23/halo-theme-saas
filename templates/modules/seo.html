@@ -13,8 +13,12 @@
       absUrl = ${path == null ? null : (#strings.startsWith(path, '/') ? siteUrl + path : siteUrl + '/' + path)},
       shareImage = ${#strings.isEmpty(image) ? site.logo : image}"
   >
+    <!--
+      括号必须留: SpEL 中 ?: 的优先级低于 and,
+      不加括号会被解析成 "A ?: (false and ...)", 空 URL 判断就失效了。
+    -->
     <th:block
-      th:if="${theme.config.seo?.enable_metadata ?: false and not #strings.isEmpty(absUrl)}"
+      th:if="${(theme.config.seo?.enable_metadata ?: false) and not #strings.isEmpty(absUrl)}"
     >
       <link rel="canonical" th:href="${absUrl}" />
       <meta property="og:site_name" th:content="${site.title}" />

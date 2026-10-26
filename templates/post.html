@@ -63,18 +63,12 @@
             th:if="${theme.config.reading?.enable_reading_time ?: true}"
           ></span>
         </div>
+        <!-- 没有封面时整块省略: 正文页挂一张灰色占位图只会显得空 -->
         <img
           th:if="${not #strings.isEmpty(cover)}"
           th:src="${cover}"
           th:alt="${post.spec.title}"
           class="post-cover"
-          loading="eager"
-        />
-        <img
-          th:if="${#strings.isEmpty(cover)}"
-          th:src="@{/assets/images/cover-placeholder.svg}"
-          alt=""
-          class="post-cover post-cover-placeholder"
           loading="eager"
         />
       </header>

@@ -26,19 +26,23 @@
       th:href="@{/rss.xml}"
       th:title="${site.title}"
     />
+    <!--
+      配色默认值: 纸感暖白 + 近黑, 主色为低饱和砖红。
+      强调色只用在链接、目录高亮这类小面积元素上, 面积一大就会滑向模板感。
+    -->
     <style
       th:inline="none"
       th:with="
-        c1 = ${theme.config.colors?.primary_color ?: '#4f6bf6'},
-        c2 = ${theme.config.colors?.secondary_color ?: '#8b5cf6'},
-        bg1 = ${theme.config.colors?.light_background ?: '#f6f7fb'},
-        bg2 = ${theme.config.colors?.dark_background ?: '#0e1116'},
-        boxBg1 = ${theme.config.layout?.global_box_bg_light ?: '#ffffff'},
-        boxBg2 = ${theme.config.layout?.global_box_bg_dark ?: '#171b21'},
-        boxRadius = ${theme.config.layout?.global_box_radius ?: 16},
+        c1 = ${theme.config.colors?.primary_color ?: '#9a4224'},
+        c2 = ${theme.config.colors?.secondary_color ?: '#9a4224'},
+        bg1 = ${theme.config.colors?.light_background ?: '#f2efe7'},
+        bg2 = ${theme.config.colors?.dark_background ?: '#141310'},
+        boxBg1 = ${theme.config.layout?.global_box_bg_light ?: '#fbf9f4'},
+        boxBg2 = ${theme.config.layout?.global_box_bg_dark ?: '#1c1b17'},
+        boxRadius = ${theme.config.layout?.global_box_radius ?: 12},
         boxOpacity = ${theme.config.layout?.global_box_bg_opacity ?: 100}"
       th:text="|:root{--color-primary:${c1};--color-secondary:${c2};--bg-light:${bg1};--bg-dark:${bg2};--box-bg-light:${boxBg1};--box-bg-dark:${boxBg2};--box-radius:${boxRadius}px;--box-opacity:${boxOpacity}%;}|"
-    >:root{--color-primary:#4f6bf6;--color-secondary:#8b5cf6;--bg-light:#f6f7fb;--bg-dark:#0e1116;--box-bg-light:#ffffff;--box-bg-dark:#171b21;--box-radius:16px;--box-opacity:100%;}</style>
+    >:root{--color-primary:#9a4224;--color-secondary:#9a4224;--bg-light:#f2efe7;--bg-dark:#141310;--box-bg-light:#fbf9f4;--box-bg-dark:#1c1b17;--box-radius:12px;--box-opacity:100%;}</style>
     <script>
       // 首屏防闪烁: 在 CSS 生效前就把 data-mode / class 定下来。
       // 必须同时同步 data-color-scheme 与 color-scheme-* class, 否则

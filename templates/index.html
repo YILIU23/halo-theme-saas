@@ -11,17 +11,19 @@
   </th:block>
 
   <th:block th:fragment="content">
-    <section
-      class="hero"
-      th:if="${theme.config.appearance?.show_hero ?: true}"
-    >
+    <!-- 刊头: 站点名 + 副标题, 用一条粗线收尾, 替代原来的渐变横幅 -->
+    <header class="masthead" th:if="${theme.config.appearance?.show_hero ?: true}">
       <h1 th:text="${site.title}">Site Title</h1>
-      <p th:if="${not #strings.isEmpty(site.subtitle)}" th:text="${site.subtitle}"></p>
-    </section>
+      <p
+        class="masthead-sub"
+        th:if="${not #strings.isEmpty(site.subtitle)}"
+        th:text="${site.subtitle}"
+      ></p>
+    </header>
 
-    <div class="post-grid" th:if="${not #lists.isEmpty(posts.items)}">
+    <div class="entry-list" th:if="${not #lists.isEmpty(posts.items)}">
       <th:block th:each="post : ${posts.items}">
-        <th:block th:replace="~{modules/post-card :: card(post = ${post})}" />
+        <th:block th:replace="~{modules/post-entry :: entry(post = ${post})}" />
       </th:block>
     </div>
 
@@ -32,10 +34,10 @@
 
   <th:block th:fragment="aside">
     <th:block th:replace="~{widgets :: profile}" />
-    <th:block th:replace="~{widgets :: stats}" />
     <th:block th:replace="~{widgets :: recent}" />
     <th:block th:replace="~{widgets :: random}" />
     <th:block th:replace="~{widgets :: categories}" />
     <th:block th:replace="~{widgets :: tags}" />
+    <th:block th:replace="~{widgets :: stats}" />
   </th:block>
 </html>

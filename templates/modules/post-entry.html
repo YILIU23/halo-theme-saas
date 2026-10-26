@@ -1,0 +1,75 @@
+<th:block xmlns:th="https://www.thymeleaf.org">
+  <!--
+    文章条目: 首页与各归档页共用。
+    形态为单列条目 (左文字 / 右小缩略图), 没有封面时整块省略缩略图,
+    不再用占位图硬撑一个色块 —— 列表里出现一排灰色占位框最像模板。
+    封面降级顺序: 文章封面 -> 主题设置的全局默认封面。
+  -->
+  <article
+    th:fragment="entry (post)"
+    class="entry"
+    th:with="
+      ownCover = ${post.spec.cover},
+      defaultCover = ${theme.config.cover?.default_post_cover ?: ''},
+      cover = ${not #strings.isEmpty(ownCover) ? ownCover : defaultCover}"
+  >
+    <div class="entry-text">
+      <div class="entry-meta">
+        <span class="entry-pin" th:if="${post.spec.pinned}" th:text="#{post.pinned}">置顶</span>
+        <a
+          class="entry-cat"
+          th:if="${not #lists.isEmpty(post.categories)}"
+          th:href="@{${post.categories[0].status.permalink}}"
+          th:text="${post.categories[0].spec.displayName}"
+        ></a>
+        <time
+          th:datetime="${#temporals.format(post.spec.publishTime, 'yyyy-MM-dd')}"
+          th:text="${#temporals.format(post.spec.publishTime, 'yyyy-MM-dd')}"
+        ></time>
+        <span th:text="#{post.viewsCount(${post.stats.visit})}">阅读 0</span>
+      </div>
+
+      <h2 class="entry-title">
+        <a th:href="@{${post.status.permalink}}" th:text="${post.spec.title}"></a>
+      </h2>
+
+      <p
+        class="entry-excerpt"
+        th:if="${not #strings.isEmpty(post.status.excerpt)}"
+        th:text="${post.status.excerpt}"
+      ></p>
+
+      <div class="entry-foot">
+        <a
+          class="entry-author"
+          th:href="@{${post.owner.permalink}}"
+          th:text="${post.owner.displayName}"
+        ></a>
+        <span
+          th:if="${post.stats.comment > 0}"
+          th:text="#{post.commentsCount(${post.stats.comment})}"
+        ></span>
+      </div>
+    </div>
+
+    <a
+      class="entry-thumb"
+      th:if="${not #strings.isEmpty(cover)}"
+      th:href="@{${post.status.permalink}}"
+      tabindex="-1"
+      aria-hidden="true"
+    >
+      <img
+        th:src="${cover}"
+        th:srcset="|${thumbnail.gen(cover, 's')} 400w, ${thumbnail.gen(cover, 'm')} 800w|"
+        sizes="200px"
+        th:alt="${post.spec.title}"
+        loading="lazy"
+        decoding="async"
+      />
+    </a>
+  </article>
+
+  <!-- 空列表提示 -->
+  <p th:fragment="empty (message)" class="empty-tip" th:text="${message}"></p>
+</th:block>

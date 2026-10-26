@@ -1,77 +1,102 @@
 <th:block xmlns:th="https://www.thymeleaf.org">
   <footer th:fragment="footer" class="site-footer">
-    <div class="container">
-      <p
-        th:if="${not #strings.isEmpty(theme.config.basic?.custom_footer)}"
-        th:text="${theme.config.basic.custom_footer}"
-      ></p>
-      <p th:unless="${not #strings.isEmpty(theme.config.basic?.custom_footer)}">
-        <span th:text="|© ${#temporals.format(#temporals.createNow(), 'yyyy')} ${site.title}|"></span>
-      </p>
+    <!--
+      页脚分三块, 全部由「页脚」设置分组控制:
+        1) 版权行 —— 填了自定义页脚就替换成自定义文案
+        2) 元信息行 —— RSS / 运行天数 / Powered by / 作者
+        3) 备案行 —— ICP 与公安备案各自一个独立开关
 
-      <p class="footer-meta">
-        <a th:href="@{/rss.xml}" th:text="RSS">RSS</a>
-        <th:block th:if="${theme.config.basic?.show_running_days ?: false}">
-          <span
-            class="footer-running"
+      配置读取顺序: theme.config.footer -> 旧版本的 filing / basic 分组。
+      旧键保留在回退链里, 主题升级后之前保存过的备案号不会失效。
+    -->
+    <th:block
+      th:with="
+        customFooter = ${theme.config.footer?.custom_footer ?: theme.config.basic?.custom_footer},
+        showDays = ${theme.config.footer?.show_running_days ?: (theme.config.basic?.show_running_days ?: false)},
+        icpNumber = ${theme.config.footer?.icp_number ?: (theme.config.filing?.icp_number ?: theme.config.basic?.icp_number)},
+        icpLinkRaw = ${theme.config.footer?.icp_link ?: (theme.config.filing?.icp_link ?: theme.config.basic?.icp_link)},
+        icpLink = ${#strings.isEmpty(icpLinkRaw) ? 'https://beian.miit.gov.cn/' : icpLinkRaw},
+        icpOn = ${(theme.config.footer?.show_icp ?: (theme.config.filing?.show_icp ?: true)) and not #strings.isEmpty(icpNumber)},
+        policeNumber = ${theme.config.footer?.police_number ?: (theme.config.filing?.police_number ?: theme.config.basic?.police_number)},
+        policeLinkRaw = ${theme.config.footer?.police_link ?: (theme.config.filing?.police_link ?: theme.config.basic?.police_link)},
+        policeLink = ${#strings.isEmpty(policeLinkRaw) ? 'https://beian.mps.gov.cn/' : policeLinkRaw},
+        policeOn = ${(theme.config.footer?.show_police_record ?: (theme.config.filing?.show_police_record ?: true)) and not #strings.isEmpty(policeNumber)}"
+    >
+      <div class="container">
+        <!-- 1) 版权行: 自定义页脚只替换这一行, 不遮挡备案信息 -->
+        <p
+          class="footer-copy"
+          th:if="${not #strings.isEmpty(customFooter)}"
+          th:text="${customFooter}"
+        ></p>
+        <p class="footer-copy" th:unless="${not #strings.isEmpty(customFooter)}">
+          <span th:text="|© ${#temporals.format(#temporals.createNow(), 'yyyy')} ${site.title}|"></span>
+        </p>
+
+        <!-- 2) 元信息行: 作者联系方式并进同一行, 页脚越长越像模板 -->
+        <p class="footer-meta">
+          <a th:href="@{/rss.xml}" th:text="RSS">RSS</a>
+          <th:block
+            th:if="${showDays}"
             th:with="oldest = ${postFinder.list({page: 1, size: 1, sort: {'spec.publishTime,asc'}})}"
           >
+            <!-- 没有文章时不渲染, 否则会留下一个孤立的间隔点 -->
+            <th:block th:if="${not #lists.isEmpty(oldest.items)}">
+              <span class="footer-sep" aria-hidden="true">·</span>
+              <span
+                class="footer-running-days"
+                th:attr="data-since=${#temporals.format(oldest.items[0].spec.publishTime, 'yyyy-MM-dd')}"
+              ></span>
+            </th:block>
+          </th:block>
+          <span class="footer-sep" aria-hidden="true">·</span>
+          <a
+            href="https://www.halo.run"
+            target="_blank"
+            rel="noopener noreferrer"
+            th:text="#{footer.poweredBy('Halo')}"
+          ></a>
+          <span class="footer-sep" aria-hidden="true">·</span>
+          <!--
+            主题作者信息: author.name / website 与 theme.yaml 同步。
+            不用 ${theme.spec.author}, 它读的是数据库里的主题记录, 不重装不会更新。
+          -->
+          <span class="footer-author">
+            <span th:text="#{footer.themeBy('流鸢iris')}">主题作者 流鸢iris</span>
             <span class="footer-sep" aria-hidden="true">·</span>
-            <span
-              th:if="${not #lists.isEmpty(oldest.items)}"
-              class="footer-running-days"
-              th:attr="data-since=${#temporals.format(oldest.items[0].spec.publishTime, 'yyyy-MM-dd')}"
-            ></span>
+            <a
+              href="https://github.com/YILIU23"
+              target="_blank"
+              rel="noopener noreferrer"
+              th:text="GitHub"
+            ></a>
+            <span class="footer-sep" aria-hidden="true">·</span>
+            <a href="mailto:yiliu2333@outlook.com" th:text="#{footer.mail}">邮箱</a>
           </span>
-        </th:block>
-        <span class="footer-sep" aria-hidden="true">·</span>
-        <a
-          href="https://www.halo.run"
-          target="_blank"
-          rel="noopener noreferrer"
-          th:text="#{footer.poweredBy('Halo')}"
-        ></a>
-      </p>
+        </p>
 
-      <!--
-        主题作者信息。
-        author.name / author.website 与 theme.yaml 保持同步; QQ 与邮箱在
-        Halo 的 Theme.author schema 里没有对应字段, 只能写在这里。
-        不用 ${theme.spec.author} 是因为它读的是数据库里的主题记录,
-        不重装主题就不会随 theme.yaml 更新。
-      -->
-      <p class="footer-author">
-        <span th:text="#{footer.themeBy('流鸢iris')}">Theme by 流鸢iris</span>
-        <span class="footer-sep" aria-hidden="true">·</span>
-        <a
-          href="https://github.com/YILIU23"
-          target="_blank"
-          rel="noopener noreferrer"
-          title="https://github.com/YILIU23"
-          >GitHub</a
-        >
-        <span class="footer-sep" aria-hidden="true">·</span>
-        <a href="mailto:yiliu2333@outlook.com" title="yiliu2333@outlook.com"
-          >yiliu2333@outlook.com</a
-        >
-        <span class="footer-sep" aria-hidden="true">·</span>
-        <span title="QQ">QQ 334565041</span>
-      </p>
+        <!-- 3) 备案行: 两个开关互相独立, 链接留空时回落到官方备案系统首页 -->
+        <p class="footer-filing" th:if="${icpOn or policeOn}">
+          <a
+            th:if="${icpOn}"
+            th:href="${icpLink}"
+            target="_blank"
+            rel="noopener noreferrer nofollow"
+            th:text="${icpNumber}"
+          ></a>
+          <span class="footer-sep" aria-hidden="true" th:if="${icpOn and policeOn}">·</span>
+          <a
+            th:if="${policeOn}"
+            th:href="${policeLink}"
+            target="_blank"
+            rel="noopener noreferrer nofollow"
+            th:text="${policeNumber}"
+          ></a>
+        </p>
 
-      <p
-        class="footer-icp"
-        th:if="${not #strings.isEmpty(theme.config.basic?.icp_number)}"
-      >
-        <a
-          th:href="${#strings.isEmpty(theme.config.basic?.icp_link) ? 'https://beian.miit.gov.cn/' : theme.config.basic.icp_link}"
-          target="_blank"
-          rel="noopener noreferrer nofollow"
-          th:text="${theme.config.basic.icp_number}"
-        ></a>
-      </p>
-
-      <halo:footer />
-    </div>
+        <halo:footer />
+      </div>
+    </th:block>
 
     <!-- 必须在 footer 片段内部, 否则不会被 th:replace 带入页面 -->
     <a
@@ -81,7 +106,7 @@
       class="back-to-top"
       th:attr="aria-label=#{backToTop}"
     >
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg>
     </a>
   </footer>
 </th:block>

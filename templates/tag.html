@@ -14,12 +14,12 @@
     <div class="page-head">
       <p class="page-head-label" th:text="#{tag.title}">Tag</p>
       <h1 th:text="|# ${tag.spec.displayName}|"></h1>
-      <p class="page-head-desc" th:text="#{categories.postCount(${tag.postCount})}"></p>
+      <p class="page-head-desc" th:text="#{tag.postCount(${tag.postCount})}"></p>
     </div>
 
-    <div class="post-grid" th:if="${not #lists.isEmpty(posts.items)}">
+    <div class="entry-list" th:if="${not #lists.isEmpty(posts.items)}">
       <th:block th:each="post : ${posts.items}">
-        <th:block th:replace="~{modules/post-card :: card(post = ${post})}" />
+        <th:block th:replace="~{modules/post-entry :: entry(post = ${post})}" />
       </th:block>
     </div>
 
