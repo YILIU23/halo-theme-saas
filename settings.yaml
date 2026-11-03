@@ -34,9 +34,9 @@ spec:
       formSchema:
         - $formkit: color
           name: primary_color
-          label: 强调色
+          label: 强调色(浅色模式)
           value: "#9a4224"
-          help: 明暗模式共用; 只出现在链接悬停、目录高亮、置顶标记等小面积元素上, 建议选低饱和度颜色
+          help: 只出现在链接悬停、目录高亮、置顶标记等小面积元素上, 建议选低饱和度颜色; 深色模式会自动取它的提亮版
         - $formkit: color
           name: secondary_color
           label: 辅助色
@@ -222,3 +222,17 @@ spec:
           value: "https://beian.mps.gov.cn/"
           placeholder: "https://beian.mps.gov.cn/"
           help: 可自定义; 留空时使用全国互联网安全管理服务平台首页
+    - group: search
+      label: 搜索
+      formSchema:
+        - $formkit: checkbox
+          name: enable_builtin_search
+          label: 启用内置搜索页
+          value: false
+          help: 装好搜索插件时顶栏用插件弹窗, 这一项不生效; 没装插件时才用它把顶栏放大镜指向本主题自带的搜索页
+        - $formkit: text
+          name: search_path
+          label: 内置搜索页地址
+          value: "/search"
+          placeholder: "/search"
+          help: 需要先在后台新建一个独立页面并选用「搜索页」自定义模板, 再把这个地址填成该页面的别名

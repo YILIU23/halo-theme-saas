@@ -170,19 +170,51 @@
       var tocWidget = document.getElementById("toc-widget");
       if (tocWidget) tocWidget.remove();
     } else {
-      var ul = document.createElement("ul");
+      // 按 h2/h3/h4 生成嵌套 <ul>, 而不是拉平后靠内边距伪装层级。
+      // 栈里每一帧代表一个目录层级, 初始层级取第一个标题 (通常是 h2 = 1)。
+      var rootList = document.createElement("ul");
+      var firstLevel = Math.max(1, Number(headings[0].tagName.charAt(1)) - 1);
+      var stack = [{ level: firstLevel, list: rootList }];
       headings.forEach(function (h, i) {
         if (!h.id) h.id = "heading-" + i;
+        var level = Number(h.tagName.charAt(1)) - 1; // h2 -> 1, h3 -> 2, h4 -> 3
+        if (!(level >= 1)) level = 1;
+
+        // 回到第一个比当前层级更浅的帧
+        while (stack.length > 1 && stack[stack.length - 1].level >= level) {
+          stack.pop();
+        }
+        var frame = stack[stack.length - 1];
+
+        // 跳级 (h2 直接接 h4) 时只降一层, 不补空节点
+        if (level > frame.level + 1) level = frame.level + 1;
+
         var li = document.createElement("li");
         var a = document.createElement("a");
         a.href = "#" + h.id;
         a.textContent = h.textContent;
-        a.className = "toc-h" + h.tagName.toLowerCase();
+        // 类名必须是 toc-h2 / toc-h3 / toc-h4 —— 之前写成 "toc-h" + "h2",
+        // 拼出 toc-hh2, 样式表里的 .toc-h3 / .toc-h4 从来没匹配上过。
+        a.className = "toc-" + h.tagName.toLowerCase();
         a.setAttribute("data-target", h.id);
         li.appendChild(a);
-        ul.appendChild(li);
+
+        if (level > frame.level) {
+          var lastLi = frame.list.lastElementChild;
+          if (lastLi) {
+            // 复用已存在的子列表, 避免同一个父项下面挂出两个 <ul>
+            var sub = lastLi.lastElementChild;
+            if (!sub || sub.tagName !== "UL") {
+              sub = document.createElement("ul");
+              lastLi.appendChild(sub);
+            }
+            frame = { level: level, list: sub };
+            stack.push(frame);
+          }
+        }
+        frame.list.appendChild(li);
       });
-      tocNav.appendChild(ul);
+      tocNav.appendChild(rootList);
 
       var links = tocNav.querySelectorAll("a");
       function setActive(id) {
@@ -241,6 +273,23 @@
         return;
       }
 
+      if (type === "markdown") {
+        var md = "[" + shareTitle + "](" + shareUrl + ")";
+        var mdLabel = btn.textContent;
+        copyText(md).then(
+          function () {
+            btn.textContent = messages.copiedMarkdown || "Markdown copied";
+            setTimeout(function () {
+              btn.textContent = mdLabel;
+            }, 2000);
+          },
+          function () {
+            window.prompt(messages.shareUnsupported || "Copy the link", md);
+          }
+        );
+        return;
+      }
+
       var target;
       if (type === "weibo") {
         target =
@@ -251,6 +300,12 @@
       } else if (type === "x") {
         target =
           "https://twitter.com/intent/tweet?url=" +
+          encodeURIComponent(shareUrl) +
+          "&text=" +
+          encodeURIComponent(shareTitle);
+      } else if (type === "telegram") {
+        target =
+          "https://t.me/share/url?url=" +
           encodeURIComponent(shareUrl) +
           "&text=" +
           encodeURIComponent(shareTitle);
@@ -313,6 +368,8 @@
   }
 
   /* ------------------------------ 返回顶部 ------------------------------ */
+  // 系统开启「减少动态效果」时不做平滑滚动, 与 style.css 里的 @media 保持一致
+  var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
   var backToTop = document.getElementById("back-to-top");
   if (backToTop) {
     var toggleBackToTop = function () {
@@ -322,7 +379,10 @@
     toggleBackToTop();
     backToTop.addEventListener("click", function (event) {
       event.preventDefault();
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      window.scrollTo({
+        top: 0,
+        behavior: reduceMotion.matches ? "auto" : "smooth",
+      });
     });
   }
 
@@ -339,5 +399,214 @@
         runningEl.textContent = (prefix ? prefix + " " : "") + days + (suffix ? " " + suffix : "");
       }
     }
+  }
+
+  /* ------------------------------ 归档筛选 ------------------------------ */
+  // 只过滤当前这一页: Halo 的归档接口是分页的, 前端拿不到全量数据。
+  var archiveToolbar = document.getElementById("archive-toolbar");
+  var archiveList = document.getElementById("archive-list");
+  var archiveInput = document.getElementById("archive-filter");
+  var archiveStatus = document.getElementById("archive-filter-status");
+  if (archiveToolbar && archiveList && archiveInput) {
+    var archiveItems = Array.prototype.slice.call(
+      archiveList.querySelectorAll(".archive-item")
+    );
+    var archiveTotal = archiveItems.length;
+    var archiveMsgCount = archiveToolbar.getAttribute("data-msg-count") || "%1 / %2";
+    var archiveMsgEmpty = archiveToolbar.getAttribute("data-msg-empty") || "";
+
+    var applyArchiveFilter = function (raw) {
+      var q = (raw || "").trim().toLowerCase();
+      var shown = 0;
+      archiveItems.forEach(function (item) {
+        var hit = !q || (item.textContent || "").toLowerCase().indexOf(q) !== -1;
+        item.hidden = !hit;
+        if (hit) shown++;
+      });
+      // 先折叠月份, 再折叠年份, 免得留下只有标题没有内容的空组
+      Array.prototype.forEach.call(
+        archiveList.querySelectorAll(".archive-month"),
+        function (month) {
+          month.hidden = month.querySelectorAll(".archive-item:not([hidden])").length === 0;
+        }
+      );
+      Array.prototype.forEach.call(
+        archiveList.querySelectorAll(".archive-group"),
+        function (group) {
+          group.hidden = group.querySelectorAll(".archive-month:not([hidden])").length === 0;
+        }
+      );
+
+      if (archiveStatus) {
+        if (!q) {
+          archiveStatus.textContent = "";
+        } else if (shown === 0) {
+          archiveStatus.textContent = archiveMsgEmpty;
+        } else {
+          archiveStatus.textContent = archiveMsgCount
+            .replace("%1", shown)
+            .replace("%2", archiveTotal);
+        }
+      }
+
+      // 同步到地址栏, 筛选结果可以直接分享
+      try {
+        var url = new URL(window.location.href);
+        if (q) url.searchParams.set("q", q);
+        else url.searchParams.delete("q");
+        window.history.replaceState(null, "", url.toString());
+      } catch (e) {}
+    };
+
+    archiveInput.addEventListener("input", function () {
+      applyArchiveFilter(archiveInput.value);
+    });
+
+    var archiveInitialQ = null;
+    try {
+      archiveInitialQ = new URLSearchParams(window.location.search).get("q");
+    } catch (e) {}
+    if (archiveInitialQ) {
+      archiveInput.value = archiveInitialQ;
+      applyArchiveFilter(archiveInitialQ);
+    }
+  }
+
+  /* ------------------------------ 内置搜索页 ---------------------------- */
+  var searchPanel = document.getElementById("search-panel");
+  if (searchPanel) {
+    var searchInput = document.getElementById("search-input");
+    var searchResults = document.getElementById("search-results");
+    var searchStatus = document.getElementById("search-status");
+    var searchEndpoint =
+      searchPanel.getAttribute("data-endpoint") ||
+      "/apis/api.content.halo.run/v1alpha1/posts";
+    var searchSize = searchPanel.getAttribute("data-size") || "200";
+    var searchMsgHint = searchPanel.getAttribute("data-msg-hint") || "";
+    var searchMsgEmpty = searchPanel.getAttribute("data-msg-empty") || "";
+    var searchMsgLoading = searchPanel.getAttribute("data-msg-loading") || "";
+    var searchMsgResults = searchPanel.getAttribute("data-msg-results") || "%1";
+    var searchMsgFailed = searchPanel.getAttribute("data-msg-failed") || "";
+    var searchIndex = null;
+    var searchLoading = false;
+
+    var runSearch = function (raw) {
+      if (!searchIndex) return;
+      var q = (raw || "").trim().toLowerCase();
+      searchResults.innerHTML = "";
+      if (!q) {
+        if (searchStatus) searchStatus.textContent = searchMsgHint;
+        return;
+      }
+      var hits = searchIndex.filter(function (it) {
+        return it.haystack.indexOf(q) !== -1;
+      });
+      if (searchStatus) {
+        searchStatus.textContent = searchMsgResults.replace("%1", hits.length);
+      }
+      if (hits.length === 0) {
+        var none = document.createElement("li");
+        none.className = "search-empty";
+        none.textContent = searchMsgEmpty;
+        searchResults.appendChild(none);
+        return;
+      }
+      hits.slice(0, 50).forEach(function (it) {
+        var li = document.createElement("li");
+        li.className = "search-result";
+
+        var a = document.createElement("a");
+        a.className = "search-result-title";
+        a.href = it.url;
+        a.textContent = it.title;
+        li.appendChild(a);
+
+        if (it.excerpt) {
+          var p = document.createElement("p");
+          p.className = "search-result-excerpt";
+          p.textContent = it.excerpt;
+          li.appendChild(p);
+        }
+
+        var meta = document.createElement("div");
+        meta.className = "search-result-meta";
+        if (it.date) {
+          var t = document.createElement("time");
+          t.textContent = it.date.slice(0, 10);
+          meta.appendChild(t);
+        }
+        it.chips.forEach(function (name) {
+          var chip = document.createElement("span");
+          chip.className = "search-result-chip";
+          chip.textContent = name;
+          meta.appendChild(chip);
+        });
+        li.appendChild(meta);
+        searchResults.appendChild(li);
+      });
+    };
+
+    // 公开内容接口只返回标题/摘要/分类/标签, 不含正文 —— 所以是「摘要级」搜索。
+    var loadSearchIndex = function () {
+      if (searchIndex || searchLoading) return;
+      searchLoading = true;
+      if (searchStatus) searchStatus.textContent = searchMsgLoading;
+      fetch(searchEndpoint + "?page=0&size=" + encodeURIComponent(searchSize), {
+        headers: { Accept: "application/json" },
+      })
+        .then(function (r) {
+          if (!r.ok) throw new Error("HTTP " + r.status);
+          return r.json();
+        })
+        .then(function (data) {
+          searchIndex = (data.items || []).map(function (p) {
+            var catNames = (p.categories || [])
+              .map(function (c) {
+                return (c.spec && c.spec.displayName) || "";
+              })
+              .filter(Boolean);
+            var tagNames = (p.tags || [])
+              .map(function (t) {
+                return (t.spec && t.spec.displayName) || "";
+              })
+              .filter(Boolean);
+            var titleText = (p.spec && p.spec.title) || "";
+            var excerpt =
+              (p.status && p.status.excerpt) ||
+              (p.spec && p.spec.excerpt && p.spec.excerpt.raw) ||
+              "";
+            return {
+              title: titleText,
+              url: (p.status && p.status.permalink) || "#",
+              date: (p.spec && p.spec.publishTime) || "",
+              excerpt: excerpt,
+              chips: catNames.concat(tagNames),
+              haystack: [titleText, excerpt, catNames.join(" "), tagNames.join(" ")]
+                .join(" ")
+                .toLowerCase(),
+            };
+          });
+          if (searchStatus) searchStatus.textContent = searchMsgHint;
+          if (searchInput && searchInput.value.trim()) runSearch(searchInput.value);
+        })
+        .catch(function () {
+          if (searchStatus) searchStatus.textContent = searchMsgFailed;
+        })
+        .then(function () {
+          searchLoading = false;
+        });
+    };
+
+    searchInput.addEventListener("input", function () {
+      runSearch(searchInput.value);
+    });
+
+    var searchInitialQ = null;
+    try {
+      searchInitialQ = new URLSearchParams(window.location.search).get("q");
+    } catch (e) {}
+    if (searchInitialQ) searchInput.value = searchInitialQ;
+
+    loadSearchIndex();
   }
 })();

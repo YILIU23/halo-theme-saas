@@ -11,7 +11,8 @@
     th:with="
       siteUrl = ${#strings.endsWith(site.url, '/') ? #strings.substring(site.url, 0, #strings.length(site.url) - 1) : site.url},
       absUrl = ${path == null ? null : (#strings.startsWith(path, '/') ? siteUrl + path : siteUrl + '/' + path)},
-      shareImage = ${#strings.isEmpty(image) ? site.logo : image}"
+      shareImage = ${#strings.isEmpty(image) ? site.logo : image},
+      crumbName = ${#strings.replace(title ?: site.title, ' - ' + site.title, '')}"
   >
     <!--
       括号必须留: SpEL 中 ?: 的优先级低于 and,
@@ -78,6 +79,53 @@
           "dateModified": /*[[${modified}]]*/ "",
           "author": { "@type": "Person", "name": /*[[${author}]]*/ "" },
           "publisher": { "@type": "Organization", "name": /*[[${site.title}]]*/ "" }
+        }
+      </script>
+
+      <!--
+        站点级 WebSite 声明, 与文章级的 BlogPosting 分开:
+        前者告诉搜索引擎这个站点是什么, 后者描述单篇内容。
+        刻意不带 SearchAction —— 本主题的站内搜索要靠插件或作者自己建的搜索页,
+        没有稳定的公开搜索 URL, 声明了反而会误导爬虫。
+      -->
+      <script
+        th:if="${type == 'website' and not #strings.isEmpty(absUrl)}"
+        type="application/ld+json"
+        th:inline="javascript"
+      >
+        {
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          "name": /*[[${site.title}]]*/ "",
+          "url": /*[[${siteUrl + '/'}]]*/ ""
+        }
+      </script>
+
+      <!--
+        面包屑: 首页 -> 当前页。首页本身不输出 (否则会出现两条同名的面包屑)。
+      -->
+      <script
+        th:if="${(type == 'article' or type == 'website') and not #strings.isEmpty(absUrl) and not #strings.isEmpty(crumbName) and crumbName != site.title}"
+        type="application/ld+json"
+        th:inline="javascript"
+      >
+        {
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": /*[[${site.title}]]*/ "",
+              "item": /*[[${siteUrl + '/'}]]*/ ""
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "name": /*[[${crumbName}]]*/ "",
+              "item": /*[[${absUrl}]]*/ ""
+            }
+          ]
         }
       </script>
     </th:block>

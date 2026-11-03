@@ -1,7 +1,7 @@
-<!doctype html>
+﻿<!doctype html>
 <html
   xmlns:th="https://www.thymeleaf.org"
-  th:replace="~{modules/layout :: html(head = ~{::head}, content = ~{::content}, aside = null)}"
+  th:replace="~{modules/layout :: html(head = ~{::head}, content = ~{::content}, aside = null, hasAside = false)}"
 >
   <th:block th:fragment="head">
     <title th:with="pageTitle=#{categories.title}" th:text="${pageTitle + ' - ' + site.title}">Categories</title>
@@ -12,7 +12,7 @@
       <h1 th:text="#{categories.title}">Categories</h1>
     </div>
 
-    <!-- categories 是 List<CategoryTreeVo>, 通过 children 递归展示层级 -->
+    <!-- categories 鏄?List<CategoryTreeVo>, 閫氳繃 children 閫掑綊灞曠ず灞傜骇 -->
     <div class="taxonomy-grid" th:if="${not #lists.isEmpty(categories)}">
       <div
         class="taxonomy-card"

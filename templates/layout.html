@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html
   lang="en"
   xmlns:th="https://www.thymeleaf.org"
@@ -9,16 +9,25 @@
            schemeData = ${scheme == 'light' ? 'light' : (scheme == 'dark' ? 'dark' : 'auto')},
            boxMode = ${theme.config.layout?.enable_global_box ?: true},
            boxShadow = ${theme.config.layout?.global_box_shadow ?: true},
-           assetRev = '1.3.0'"
+           assetRev = #{asset.rev}"
   th:class="${schemeClass}"
   th:attr="data-color-scheme=${schemeData}"
 >
   <!--
     页面布局契约 (Halo >= 2.26.0): html(head, content)
-    插件前台页面通过 layout :: html(head = ..., content = ...) 复用该外壳。
-    主题自身页面请使用 modules/layout :: html(head, content, aside)。
+    插件前台页面通过 layout :: html(head = ..., content = ...) 复用该外壳;
+    主题自身页面请使用 modules/layout :: html(head, content, aside, hasAside)。
 
-    大盒子布局: body 加 global-box-mode, 内容整体裹进 .site-box。
+    注意: Thymeleaf 3.1 要求片段签名里的每个参数都在调用处显式传入,
+    没有默认值可省略 —— 少传一个会直接抛 TemplateProcessingException:
+    "declares parameter X, which is not specified at the fragment selection"。
+    新增布局参数时务必同步更新全部调用方。
+
+    hasAside 用于区分「页面本身没有侧栏」和「有侧栏但内部开关全关」:
+    前者的 aside 片段为 null, 后者的片段非 null 但渲染结果为空。
+    两种情况下都要让 .site-main 收成单列, 否则会留一条 260px 的空白侧栏。
+
+    大盒子布局: body 加 global-box-mode, 内容整体套进 .site-box。
     关闭时 .site-box 不带任何样式, 等价于原来的全屏铺满。
     .site-box 始终存在是为了让插件通过 content 片段注入的 DOM 也落在同一层,
     避免开关前后 DOM 层级不一致。

@@ -1,7 +1,7 @@
 <!doctype html>
 <html
   xmlns:th="https://www.thymeleaf.org"
-  th:replace="~{modules/layout :: html(head = ~{::head}, content = ~{::content}, aside = ~{::aside})}"
+  th:replace="~{modules/layout :: html(head = ~{::head}, content = ~{::content}, aside = ~{::aside}, hasAside = ${(theme.config.appearance?.enable_toc ?: true) and not (#annotations.getOrDefault(singlePage, 'hideToc', '') == 'true')})}"
 >
   <th:block th:fragment="head">
     <title th:text="|${singlePage.spec.title} - ${site.title}|"></title>
@@ -52,7 +52,7 @@
     <section
       class="widget widget-toc"
       id="toc-widget"
-      th:if="${theme.config.appearance?.enable_toc ?: true}"
+      th:if="${(theme.config.appearance?.enable_toc ?: true) and not (#annotations.getOrDefault(singlePage, 'hideToc', '') == 'true')}"
     >
       <h3 class="widget-title" th:text="#{post.toc}">On this page</h3>
       <nav id="toc" class="toc"></nav>

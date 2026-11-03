@@ -42,6 +42,11 @@
           <dt th:text="#{stats.comments}">Comments</dt>
           <dd th:text="${stats.comment}">0</dd>
         </div>
+        <!-- 点赞数由 SiteStatsVo.upvote 提供; 站点没装点赞相关插件时恒为 0, 不占位 -->
+        <div th:if="${stats.upvote > 0}">
+          <dt th:text="#{stats.upvotes}">Upvotes</dt>
+          <dd th:text="${stats.upvote}">0</dd>
+        </div>
       </dl>
     </section>
   </th:block>

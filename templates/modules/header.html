@@ -50,6 +50,18 @@
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
         </button>
+        <!--
+          没装搜索插件时的退路: 指向主题自带的搜索页 (见 templates/search.html)。
+          默认关闭, 因为需要作者先在后台建好那个独立页面, 否则点了会 404。
+        -->
+        <a
+          th:if="${not pluginFinder.available('PluginSearchWidget') and (theme.config.search?.enable_builtin_search ?: false)}"
+          class="icon-btn"
+          th:href="@{${theme.config.search?.search_path ?: '/search'}}"
+          th:attr="aria-label=#{nav.search}"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        </a>
         <button
           type="button"
           class="icon-btn"

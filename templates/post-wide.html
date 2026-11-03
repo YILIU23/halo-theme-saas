@@ -1,0 +1,5 @@
+<!doctype html>
+<html
+  xmlns:th="https://www.thymeleaf.org"
+  th:replace="~{modules/layout :: html(head = ~{modules/post-body :: head(post = ${post})}, content = ~{modules/post-body :: content(post = ${post}, variant = 'post-wide')}, aside = null, hasAside = false)}"
+></html>

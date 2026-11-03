@@ -4,8 +4,9 @@
     页面标题、canonical、OG 等由各页面通过 head 片段传入。
   -->
   <!--
-    静态资源版本号 assetRev 由布局模板 (layout.html / modules/layout.html /
-    error/layout.html) 在 <html> 上以 th:with 声明, 这里与各页面直接复用。
+    静态资源版本号 assetRev 的唯一来源是 i18n/default.properties 里的 asset.rev,
+    由布局模板 (layout.html / modules/layout.html / error/layout.html) 在 <html> 上
+    以 th:with="assetRev = #{asset.rev}" 声明, 这里与各页面直接复用。
 
     为什么不用 theme.spec.version:
     Halo 对 /themes/** 下的静态资源发送 Cache-Control: max-age=31536000,
@@ -13,7 +14,8 @@
     而 theme.spec.version 取自数据库中已登记的 Theme 记录 —— 直接覆盖主题
     文件后若未在 Console 重新安装或重载, 该值会停留在旧版本, 浏览器就会
     一直命中旧 CSS/JS (旧样式下 .skip-link 不可见、暗色横幅不生效)。
-    发布时请同步递增 assetRev 与 theme.yaml 的 version。
+    用 i18n 而不是在三处模板里各写一遍, 是为了让版本号只有一个可改的地方。
+    发布时请同步递增 asset.rev 与 theme.yaml 的 version。
   -->
   <th:block th:fragment="common (rev)">
     <meta charset="UTF-8" />
@@ -81,6 +83,7 @@
         copied: /*[[#{post.copied}]]*/ "",
         copyFailed: /*[[#{post.copyFailed}]]*/ "",
         linkCopied: /*[[#{post.linkCopied}]]*/ "",
+        copiedMarkdown: /*[[#{post.copiedMarkdown}]]*/ "",
         shareUnsupported: /*[[#{post.shareUnsupported}]]*/ "",
         runningPrefix: /*[[#{footer.runningPrefix}]]*/ "",
         runningSuffix: /*[[#{footer.runningSuffix}]]*/ "",

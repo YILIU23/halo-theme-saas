@@ -1,0 +1,162 @@
+<!doctype html>
+<html xmlns:th="https://www.thymeleaf.org">
+  <body>
+    <!--
+      文章页公共片段。post.html(默认) / post-wide.html(长文宽版) / post-doc.html(文档式)
+      都从这里取, 保证三套模板的正文、目录、上下篇与评论行为完全一致。
+
+      variant 只影响正文根元素的 class:
+        ''         默认
+        post-wide  收起侧栏后的宽版, 放宽正文的 max-width
+        post-doc   文档式, 收紧字号与小节间距
+
+      调用方必须把片段签名的所有参数都传齐 —— Thymeleaf 3.1 没有参数默认值。
+    -->
+
+    <th:block th:fragment="head(post)">
+      <title th:text="|${post.spec.title} - ${site.title}|"></title>
+      <th:block
+        th:replace="~{modules/seo :: meta(type = 'article', title = ${post.spec.title}, description = ${post.status.excerpt}, path = ${post.status.permalink}, image = ${post.spec.cover}, author = ${post.owner.displayName}, published = ${#temporals.format(post.spec.publishTime, 'yyyy-MM-dd')}, modified = ${#temporals.format(post.status.lastModifyTime, 'yyyy-MM-dd')})}"
+      />
+      <script defer th:src="@{/assets/js/highlight.min.js(v=${assetRev})}"></script>
+    </th:block>
+
+    <th:block th:fragment="content(post, variant)">
+      <div
+        class="reading-progress"
+        id="reading-progress"
+        th:if="${theme.config.reading?.enable_reading_progress ?: true}"
+        aria-hidden="true"
+      >
+        <span class="reading-progress-bar" id="reading-progress-bar"></span>
+      </div>
+
+      <!-- 封面降级链: 文章封面 -> 全局默认封面 -> 不输出 -->
+      <article
+        class="post-detail"
+        th:classappend="${variant}"
+        th:attr="data-reading-time=${theme.config.reading?.enable_reading_time ?: true}"
+        th:with="
+          defaultCover = ${theme.config.cover?.default_post_cover ?: ''},
+          cover = ${not #strings.isEmpty(post.spec.cover) ? post.spec.cover : defaultCover},
+          coverStyle = ${#annotations.getOrDefault(post, 'coverStyle', '')},
+          hideToc = ${#annotations.getOrDefault(post, 'hideToc', '') == 'true'},
+          hideShare = ${#annotations.getOrDefault(post, 'hideShare', '') == 'true'}"
+      >
+        <header class="post-header">
+          <nav class="post-categories" th:if="${not #lists.isEmpty(post.categories)}">
+            <a
+              th:each="cat : ${post.categories}"
+              th:href="@{${cat.status.permalink}}"
+              th:text="${cat.spec.displayName}"
+              class="tag-chip"
+            ></a>
+          </nav>
+          <h1 th:text="${post.spec.title}"></h1>
+          <div class="post-header-meta">
+            <a th:href="@{${post.owner.permalink}}" th:text="${post.owner.displayName}"></a>
+            <time
+              th:datetime="${#temporals.format(post.spec.publishTime, 'yyyy-MM-dd')}"
+              th:text="${#temporals.format(post.spec.publishTime, 'yyyy-MM-dd HH:mm')}"
+            ></time>
+            <span th:text="#{post.viewsCount(${post.stats.visit})}">0 views</span>
+            <span
+              th:if="${post.stats.comment > 0}"
+              th:text="#{post.commentsCount(${post.stats.comment})}"
+            ></span>
+            <span
+              class="reading-time"
+              id="reading-time"
+              th:attr="data-template=#{post.readingTime}"
+              th:if="${theme.config.reading?.enable_reading_time ?: true}"
+            ></span>
+          </div>
+          <!-- 没有封面时整块省略: 正文页挂一张灰色占位图只会显得空 -->
+          <img
+            th:if="${not #strings.isEmpty(cover) and coverStyle != 'hidden'}"
+            th:src="${cover}"
+            th:alt="${post.spec.title}"
+            class="post-cover"
+            th:classappend="${coverStyle == 'wide'} ? 'cover-wide'"
+            loading="eager"
+            fetchpriority="high"
+          />
+        </header>
+
+        <div class="post-content" id="post-content" th:utext="${post.content.content}"></div>
+
+        <div class="post-tags" th:if="${not #lists.isEmpty(post.tags)}">
+          <a
+            th:each="tag : ${post.tags}"
+            th:href="@{${tag.status.permalink}}"
+            th:text="|# ${tag.spec.displayName}|"
+            class="tag-chip"
+          ></a>
+        </div>
+
+        <div
+          class="post-share"
+          id="post-share"
+          th:if="${(theme.config.reading?.enable_share ?: true) and not hideShare}"
+          th:attr="data-title=${post.spec.title}, data-url=${site.url + post.status.permalink}"
+        >
+          <span class="post-share-label" th:text="#{post.share}">Share</span>
+          <button type="button" class="share-btn" data-share="copy" th:text="#{post.copyLink}">Copy link</button>
+          <button type="button" class="share-btn" data-share="weibo" th:text="#{post.weibo}">Weibo</button>
+          <button type="button" class="share-btn" data-share="x" th:text="#{post.twitter}">X</button>
+          <button type="button" class="share-btn" data-share="telegram" th:text="#{post.telegram}">Telegram</button>
+          <button type="button" class="share-btn" data-share="markdown" th:text="#{post.copyMarkdown}">Copy as Markdown</button>
+        </div>
+      </article>
+
+      <nav class="post-navigation" th:with="cursor = ${postFinder.cursor(post.metadata.name)}">
+        <a
+          class="post-nav-card prev"
+          th:if="${cursor.hasPrevious()}"
+          th:href="@{${cursor.previous.status.permalink}}"
+          rel="prev"
+        >
+          <span th:text="#{post.prev}">Previous post</span>
+          <strong th:text="${cursor.previous.spec.title}">Previous</strong>
+        </a>
+        <a
+          class="post-nav-card next"
+          th:if="${cursor.hasNext()}"
+          th:href="@{${cursor.next.status.permalink}}"
+          rel="next"
+        >
+          <span th:text="#{post.next}">Next post</span>
+          <strong th:text="${cursor.next.spec.title}">Next</strong>
+        </a>
+      </nav>
+
+      <div class="comments" th:if="${haloCommentEnabled and post.spec.allowComment}">
+        <halo:comment
+          group="content.halo.run"
+          kind="Post"
+          th:attr="name=${post.metadata.name}"
+        />
+      </div>
+    </th:block>
+
+    <!-- 只要目录 -->
+    <th:block th:fragment="asideToc(post)">
+      <section
+        class="widget widget-toc"
+        id="toc-widget"
+        th:if="${(theme.config.appearance?.enable_toc ?: true) and not (#annotations.getOrDefault(post, 'hideToc', '') == 'true')}"
+      >
+        <h3 class="widget-title" th:text="#{post.toc}">On this page</h3>
+        <nav id="toc" class="toc"></nav>
+      </section>
+    </th:block>
+
+    <!-- 目录 + 最新 + 分类 + 标签 -->
+    <th:block th:fragment="asideFull(post)">
+      <th:block th:replace="~{modules/post-body :: asideToc(post = ${post})}" />
+      <th:block th:replace="~{widgets :: recent}" />
+      <th:block th:replace="~{widgets :: categories}" />
+      <th:block th:replace="~{widgets :: tags}" />
+    </th:block>
+  </body>
+</html>

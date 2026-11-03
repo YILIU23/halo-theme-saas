@@ -1,21 +1,22 @@
-<!doctype html>
+﻿<!doctype html>
 <html
   lang="en"
   xmlns:th="https://www.thymeleaf.org"
   th:lang="${#locale.toLanguageTag}"
-  th:fragment="html (head, content, aside)"
+  th:fragment="html (head, content, aside, hasAside)"
   th:with="scheme = ${theme.config.appearance?.default_color_scheme ?: 'system'},
            schemeClass = ${scheme == 'light' ? 'color-scheme-light' : (scheme == 'dark' ? 'color-scheme-dark' : 'color-scheme-auto')},
            schemeData = ${scheme == 'light' ? 'light' : (scheme == 'dark' ? 'dark' : 'auto')},
            boxMode = ${theme.config.layout?.enable_global_box ?: true},
            boxShadow = ${theme.config.layout?.global_box_shadow ?: true},
-           assetRev = '1.3.0'"
+           assetRev = #{asset.rev},
+           showAside = ${(aside != null) and (hasAside ?: false)}"
   th:class="${schemeClass}"
   th:attr="data-color-scheme=${schemeData}"
 >
   <!--
-    主题内部私有布局。页面布局契约见 templates/layout.html。
-    大盒子布局: body 加 global-box-mode, 内容整体裹进 .site-box, 说明见 layout.html。
+    主题内部私有布局。对外约定的页面布局见 templates/layout.html。
+    大盒子布局: body 加 global-box-mode, 内容整体套进 .site-box, 说明见 layout.html。
   -->
   <head>
     <th:block th:replace="~{modules/head :: common(rev = ${assetRev})}" />
@@ -32,12 +33,12 @@
       <main
         class="container site-main"
         id="main"
-        th:classappend="${aside == null} ? 'single-col'"
+        th:classappend="${showAside} ? '' : 'single-col'"
       >
         <div class="content-col">
           <th:block th:replace="${content}" />
         </div>
-        <aside class="sidebar-col" th:if="${aside != null}">
+        <aside class="sidebar-col" th:if="${showAside}">
           <th:block th:replace="${aside}" />
         </aside>
       </main>

@@ -1,0 +1,58 @@
+# 主题附带的元数据表单。
+#
+# 这里声明的字段会出现在 Halo 后台的「文章 → 设置 → 元数据」里, 存进
+# metadata.annotations。注意 annotations 的键值只能是字符串, 因此
+# checkbox 必须用 on-value / off-value 指定字符串值, 不能依赖默认的布尔值。
+#
+# 模板侧读取方式 (见 modules/post-body.html):
+#   #annotations.getOrDefault(post, 'hideToc', '')
+apiVersion: v1alpha1
+kind: AnnotationSetting
+metadata:
+  name: saas-theme-post-annotation-setting
+spec:
+  targetRef:
+    group: content.halo.run
+    kind: Post
+  formSchema:
+    - $formkit: select
+      name: coverStyle
+      label: 封面样式
+      value: ""
+      options:
+        - label: 跟随主题设置
+          value: ""
+        - label: 通栏(更高)
+          value: wide
+        - label: 隐藏封面
+          value: hidden
+      help: 只影响本篇文章的封面, 不影响其他地方
+    - $formkit: checkbox
+      name: hideToc
+      label: 隐藏本文目录
+      on-value: "true"
+      off-value: ""
+      help: 勾选后右侧目录不显示, 但最新文章/分类/标签等挂件仍在
+    - $formkit: checkbox
+      name: hideShare
+      label: 隐藏分享按钮
+      on-value: "true"
+      off-value: ""
+      help: 适合内部文档或不想被转发的文章
+
+---
+apiVersion: v1alpha1
+kind: AnnotationSetting
+metadata:
+  name: saas-theme-page-annotation-setting
+spec:
+  targetRef:
+    group: content.halo.run
+    kind: SinglePage
+  formSchema:
+    - $formkit: checkbox
+      name: hideToc
+      label: 隐藏本页目录
+      on-value: "true"
+      off-value: ""
+      help: 勾选后右侧目录不显示

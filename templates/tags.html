@@ -1,7 +1,7 @@
-<!doctype html>
+﻿<!doctype html>
 <html
   xmlns:th="https://www.thymeleaf.org"
-  th:replace="~{modules/layout :: html(head = ~{::head}, content = ~{::content}, aside = null)}"
+  th:replace="~{modules/layout :: html(head = ~{::head}, content = ~{::content}, aside = null, hasAside = false)}"
 >
   <th:block th:fragment="head">
     <title th:with="pageTitle=#{tags.title}" th:text="${pageTitle + ' - ' + site.title}">Tags</title>
@@ -12,7 +12,7 @@
       <h1 th:text="#{tags.title}">Tags</h1>
     </div>
 
-    <!-- tags 是 List<TagVo>, 没有分页 -->
+    <!-- tags 鏄?List<TagVo>, 娌℃湁鍒嗛〉 -->
     <div class="widget-tags tag-cloud" th:if="${not #lists.isEmpty(tags)}">
       <a
         th:each="tag : ${tags}"

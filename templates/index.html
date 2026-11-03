@@ -1,17 +1,17 @@
 <!doctype html>
 <html
   xmlns:th="https://www.thymeleaf.org"
-  th:replace="~{modules/layout :: html(head = ~{::head}, content = ~{::content}, aside = ~{::aside})}"
+  th:replace="~{modules/layout :: html(head = ~{::head}, content = ~{::content}, aside = ~{::aside}, hasAside = true)}"
 >
   <th:block th:fragment="head">
     <title th:text="${site.title}">Site Title</title>
     <th:block
-      th:replace="~{modules/seo :: meta(type = 'website', title = ${site.title}, description = ${site.seo.description}, path = ${'/'}, image = ${site.logo}, author = null, published = null, modified = null)}"
+      th:replace="~{modules/seo :: meta(type = 'website', title = ${site.title}, description = ${site.seo.description}, path = ${posts.page > 1 ? '/page/' + posts.page : '/'}, image = ${site.logo}, author = null, published = null, modified = null)}"
     />
   </th:block>
 
   <th:block th:fragment="content">
-    <!-- 刊头: 站点名 + 副标题, 用一条粗线收尾, 替代原来的渐变横幅 -->
+    <!-- 刊头: 站点名 + 副标题, 用一条粗线收尾, 替代原来的渐变横条 -->
     <header class="masthead" th:if="${theme.config.appearance?.show_hero ?: true}">
       <h1 th:text="${site.title}">Site Title</h1>
       <p

@@ -20,7 +20,24 @@ spec:
   issues: "https://github.com/YILIU23/halo-theme-saas/issues"
   settingName: "saas-theme-setting"
   configMapName: "saas-theme-configmap"
-  version: 1.3.0
+  # 文章自定义模板: 作者可在文章编辑页的「自定义模板」里选择。
+  # file 指向 templates/ 下的文件名, 三个模板共用 modules/post-body.html 的正文片段。
+  customTemplates:
+    post:
+      - name: 长文宽版
+        description: 收起侧栏, 正文用满整栏, 适合长文与图片较多的文章
+        screenshot:
+        file: post-wide.html
+      - name: 文档式
+        description: 侧栏只保留目录, 正文字号略小、小节间距更紧, 适合教程与手册
+        screenshot:
+        file: post-doc.html
+    page:
+      - name: 搜索页
+        description: 站内搜索, 标题与摘要匹配; 没装搜索插件时的替代方案
+        screenshot:
+        file: search.html
+  version: 1.4.2
   requires: ">=2.26.0"
   license:
     - name: "MIT"

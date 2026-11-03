@@ -1,7 +1,7 @@
 <!doctype html>
 <html
   xmlns:th="https://www.thymeleaf.org"
-  th:replace="~{modules/layout :: html(head = ~{::head}, content = ~{::content}, aside = ~{::aside})}"
+  th:replace="~{modules/layout :: html(head = ~{::head}, content = ~{::content}, aside = ~{::aside}, hasAside = true)}"
 >
   <th:block th:fragment="head">
     <title th:with="pageTitle=#{archives.title}" th:text="${pageTitle + ' - ' + site.title}">Archives</title>
@@ -13,11 +13,64 @@
       <h1 th:text="#{archives.title}">Archives</h1>
     </div>
 
-    <div class="archive-list">
-      <section class="archive-group" th:each="archive : ${archives.items}">
-        <h2 th:text="${archive.year}"></h2>
+    <!--
+      工具条: 左侧年份跳转(锚点直达), 右侧本页筛选。
+      筛选只作用于当前这一页 —— Halo 的归档是分页的, 前端拿不到全量数据;
+      要全站搜索请用「搜索页」自定义模板 (templates/search.html)。
+    -->
+    <div
+      class="archive-toolbar"
+      id="archive-toolbar"
+      th:attr="data-msg-count=#{archives.filterCount}, data-msg-empty=#{archives.filterEmpty}"
+    >
+      <nav
+        class="archive-years"
+        id="archive-years"
+        th:if="${not #lists.isEmpty(archives.items)}"
+        th:attr="aria-label=#{archives.title}"
+      >
+        <a
+          th:each="archive : ${archives.items}"
+          class="archive-year-chip"
+          th:href="|#archive-year-${archive.year}|"
+          th:text="${archive.year}">2026</a>
+      </nav>
+
+      <div class="archive-filter-field">
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          aria-hidden="true"
+        ><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
+        <input
+          type="search"
+          id="archive-filter"
+          class="archive-filter-input"
+          autocomplete="off"
+          th:attr="placeholder=#{archives.filterPlaceholder}, aria-label=#{archives.filterPlaceholder}"
+        />
+      </div>
+    </div>
+
+    <p class="archive-filter-status" id="archive-filter-status" aria-live="polite"></p>
+
+    <div class="archive-list" id="archive-list">
+      <section
+        class="archive-group"
+        th:each="archive : ${archives.items}"
+        th:attr="data-year=${archive.year}"
+      >
+        <h2 th:id="|archive-year-${archive.year}|" th:text="${archive.year}"></h2>
         <div class="archive-month" th:each="month : ${archive.months}">
-          <h3 class="archive-month-title" th:text="#{archives.monthLabel(${month.month})}"></h3>
+          <h3 class="archive-month-title">
+            <span th:text="#{archives.monthLabel(${month.month})}"></span>
+            <span class="archive-month-count" th:text="${#lists.size(month.posts)}"></span>
+          </h3>
           <a
             class="archive-item"
             th:each="post : ${month.posts}"

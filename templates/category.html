@@ -1,11 +1,11 @@
-<!doctype html>
+﻿<!doctype html>
 <html
   xmlns:th="https://www.thymeleaf.org"
-  th:replace="~{modules/layout :: html(head = ~{::head}, content = ~{::content}, aside = ~{::aside})}"
+  th:replace="~{modules/layout :: html(head = ~{::head}, content = ~{::content}, aside = ~{::aside}, hasAside = true)}"
 >
   <th:block th:fragment="head">
     <title th:text="|${category.spec.displayName} - ${site.title}|"></title>
-    <!-- 分页页不复用首页 canonical, 无法得到可靠的当前页地址时留空 -->
+    <!-- 分页时不复用首页 canonical: 拿不到可靠的当前页地址, 宁可留空 -->
     <th:block
       th:replace="~{modules/seo :: meta(type = 'website', title = ${category.spec.displayName + ' - ' + site.title}, description = ${category.spec.description}, path = ${posts.page > 1 ? null : category.status.permalink}, image = ${category.spec.cover}, author = null, published = null, modified = null)}"
     />
